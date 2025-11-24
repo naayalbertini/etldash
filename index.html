@@ -1,382 +1,325 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Gestão - Festa da Família</title>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  
-  <style>
-    /* VARIÁVEIS DE COR PARA TEMA GLASS/SOFISTICADO */
-    :root {
-      --bg-light: #f9f9f9;
-      --bg-card: white;
-      --text-dark: #333;
-      --accent-color: #007bff; /* Azul primário */
-      --header-color: #f1f1f1;
-      --border-color: #e0e0e0;
-      --reserved-color: #dc3545; /* Vermelho Padrão (Pendente) */
-      --confirmed-color: #28a745; /* Verde Padrão (Confirmado) */
-      
-      /* Novas variáveis para o design de login */
-      --glass-bg: rgba(255, 255, 255, 0.1); 
-      --login-card-bg: white;
-      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Festa da Família - Reserva de Mesas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+    
+    /* Reset and Modern Base */
+    * { 
+        box-sizing: border-box; 
+        transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease;
     }
     
+    /* LUXURY DESIGN BASE */
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      /* Fundo com gradiente suave e moderno */
-      background: linear-gradient(135deg, #eef1f5 0%, #dcdfe4 100%);
-      color: var(--text-dark);
-      padding: 0; 
-      margin: 0;
-      line-height: 1.6;
-    }
-    
-    .container {
-      max-width: 1300px;
-      margin: 0 auto;
-      background: var(--bg-card);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* ESTILOS ELEGANTES PARA A TELA DE LOGIN */
-    #login-screen {
-        display: none; 
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        /* Adiciona fundo suave para o login */
-        background: linear-gradient(135deg, #eef1f5 0%, #dcdfe4 100%); 
-    }
-    
-    .login-container {
-        /* Card de login branco puro com sombra sofisticada */
-        background: var(--login-card-bg); 
-        padding: 50px 40px; 
-        border-radius: 16px; 
-        box-shadow: var(--shadow-soft); 
-        width: 100%;
-        max-width: 360px; 
-        text-align: center;
-        border: 1px solid #f0f0f0; 
-    }
-
-    .login-container h1 {
-        color: var(--text-dark); 
-        margin-bottom: 35px; 
-        font-weight: 300; 
-        font-size: 2.5em; 
-        letter-spacing: 1px;
-        border-bottom: none;
-    }
-
-    #login-screen input[type="email"], #login-screen input[type="password"] {
-        width: 100%;
-        padding: 14px 12px; 
-        margin: 10px 0 20px 0;
-        border: 1px solid #ccc; 
-        border-radius: 8px; 
-        box-sizing: border-box;
-        font-size: 16px;
-        background-color: #f7f7f7; 
-        transition: all 0.3s;
-    }
-    #login-screen input:focus {
-        border-color: var(--accent-color); 
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15); 
-        outline: none;
-        background-color: white; 
-    }
-    
-    #login-screen button {
-        background-color: var(--accent-color);
-        color: white;
-        padding: 15px 20px;
-        margin: 15px 0 8px 0;
-        border: none;
-        border-radius: 8px; 
-        cursor: pointer;
-        width: 100%;
-        font-size: 17px;
-        font-weight: 500; 
-        letter-spacing: 0.5px;
-        transition: background-color 0.3s, box-shadow 0.2s;
-        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
-    }
-
-    #login-screen button:hover {
-        background-color: #0056b3;
-        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
-    }
-    
-    #error-message {
-        color: var(--reserved-color);
-        margin-top: 15px;
-        font-weight: 500;
-    }
-    /* FIM: ESTILOS ELEGANTES PARA LOGIN */
-
-    /* Estilos do Painel de Gestão */
-    #dashboard-content {
-        display: none; 
-        padding: 20px;
-    }
-    .user-info {
-        display: none; 
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 25px;
-        font-size: 1.1rem;
-    }
-    .user-info span {
-        display: flex;
-        align-items: center;
-        color: var(--text-dark);
-    }
-    
-    /* NOVO ESTILO PARA A IMAGEM DE PERFIL */
-    .profile-photo {
-        width: 35px; /* Tamanho da foto */
-        height: 35px;
-        border-radius: 50%; /* Torna a foto redonda */
-        margin-right: 10px;
-        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
-        border: 2px solid var(--accent-color); /* Borda sutil */
-    }
-
-    /* O estilo profile-icon não é mais necessário, mas o mantemos para fallback ou estrutura */
-    .user-info .profile-icon {
-        font-size: 1.5rem;
-        margin-right: 10px;
-        color: var(--accent-color);
-    }
-    /* FIM NOVO ESTILO */
-
-    .logout-button {
-        background: none;
-        border: 1px solid var(--reserved-color);
-        color: var(--reserved-color);
-        padding: 8px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s, color 0.2s;
-    }
-    .logout-button:hover {
-        background-color: var(--reserved-color);
-        color: white;
-    }
-    
-    h1 {
-      color: var(--text-dark);
-      text-align: left;
-      margin-bottom: 25px;
-      font-weight: 300;
-      font-size: 2em;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 10px;
-    }
-    
-    .actions-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        gap: 20px;
-    }
-    .search-area {
-        position: relative;
-        flex-grow: 1;
-    }
-    #search-input {
-      width: 100%;
-      padding: 10px 10px 10px 45px;
-      border: 1px solid var(--border-color);
-      background-color: var(--bg-card);
-      color: var(--text-dark);
-      border-radius: 4px;
-      box-sizing: border-box;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-    #search-input:focus {
-        border-color: var(--accent-color);
-        outline: none;
-    }
-    .search-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.2rem;
-        color: #777;
-    }
-    .pdf-button {
-        background-color: var(--reserved-color);
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: background-color 0.2s, transform 0.1s;
-    }
-    .pdf-button:hover {
-        background-color: #c82333;
-        transform: translateY(-1px);
-    }
-
-    /* ESTILOS DA TABELA */
-    
-    #reservasTable {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: var(--bg-card);
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    #reservasTable th, #reservasTable td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.9rem;
-    }
-    #reservasTable th {
-      background-color: var(--header-color);
-      color: var(--text-dark);
-      font-weight: 600;
-      text-transform: uppercase;
-      cursor: pointer;
-      position: relative;
-      letter-spacing: 0.5px;
-      white-space: nowrap; /* Evita quebra de linha nos cabeçalhos */
-    }
-    #reservasTable th:hover {
-      background-color: #e9e9e9;
-    }
-    #reservasTable tbody tr:hover {
-      background-color: #f5f5f5;
-    }
-    
-    .sort-asc::after { color: var(--accent-color); content: ' ▲'; font-size: 0.8em; }
-    .sort-desc::after { color: var(--accent-color); content: ' ▼'; font-size: 0.8em; }
-    
-    /* ESTILO DO BOTÃO DE LEMBRETE PIX */
-    .pix-reminder-button { 
-        background-color: #f39c12; 
-        color: white;
-        margin-left: 5px; 
-        text-decoration: none; 
-        padding: 4px 8px; 
-        border-radius: 4px; 
-        font-weight: bold; 
-        font-size: 0.8rem; 
-        display: inline-block;
-        white-space: nowrap; /* Impede a quebra de linha */
-    }
-    .pix-reminder-button:hover {
-        background-color: #e67e22;
-    }
-
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 0.8rem;
-    }
-    /* Status PENDENTE agora é VERMELHO */
-    .status-pendente {
-        background-color: #f8d7da; 
-        color: var(--reserved-color);
-    }
-    /* Status CONFIRMADO agora é VERDE */
-    .status-confirmado {
-        background-color: #d4edda; 
-        color: var(--confirmed-color);
-    }
-    
-    /* NOVO ESTILO PARA CANCELAMENTO SOLICITADO */
-    .status-cancelamento {
-        background-color: #ffc107; /* Amarelo/Laranja de Alerta */
-        color: #333;
-        border: 1px solid #e0a800;
-    }
-    
-    /* ESTILO PARA ALINHAR BOTÕES NA COLUNA AÇÃO (Versão Desktop) */
-    #reservasTable td:nth-child(9) { 
+        font-family: 'Inter', sans-serif;
+        background: radial-gradient(circle at center, #0d1a26 0%, #000000 100%);
+        color: #f0f0f0; 
+        margin: 0;
+        padding: 20px 10px; 
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        align-items: flex-start;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-
-
-    .action-button {
-        color: white;
-        border: none;
-        padding: 8px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: background-color 0.2s;
-        margin: 2px 0;
-        display: block; 
-        width: 100%;
-        text-align: center;
-        white-space: nowrap;
-    }
-    .confirm-button {
-        background-color: var(--accent-color);
-    }
-    .edit-button {
-        background-color: #ffc107; 
-        color: #333;
-    }
-    .delete-button {
-        background-color: var(--reserved-color); 
-    }
-    .action-button:hover, .confirm-button:hover {
-        opacity: 0.9;
-    }
-
-    .total-reservas {
-      font-weight: bold;
-      margin-bottom: 15px;
-      text-align: center;
-      font-size: 1.2rem;
-      padding: 15px;
-      background-color: #e0f7fa; 
-      border-radius: 4px;
-      color: #00796b;
-      border: 1px solid #b2ebf2;
-    }
-    .loading-text {
-        color: #666;
-        font-size: 1.1rem;
+        align-items: center;
     }
     
-    #editModal {
+    /* HEADER REFINADO - CORREÇÃO DE ALINHAMENTO */
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center; 
+        gap: 20px; 
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        max-width: 900px;
+        width: 100%;
+        text-align: center; 
+    }
+    .header-content img {
+        height: 80px; 
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+    }
+    
+    /* CAIXA DOURADA DO TÍTULO (PLACA) */
+    .title-box {
+        text-align: center;
+        padding: 15px 30px;
+        border: 1px solid #d4af37; 
+        border-radius: 15px;
+        background: rgba(212, 175, 55, 0.05); 
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); 
+        min-width: 250px; 
+        flex-grow: 1; 
+    }
+
+    .title-box h1 {
+        font-weight: 700; 
+        font-size: 3.0rem; 
+        margin: 0 0 5px 0; 
+        line-height: 1.1;
+        color: #d4af37; 
+        text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+    }
+
+    .title-box .subtitle {
+        display: block;
+        font-size: 1.1rem; 
+        font-weight: 300;
+        color: #ccc; 
+        margin-top: 5px;
+    }
+    
+    /* Grid das Mesas (Responsivo: 4-Corredor-3) */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr); 
+        gap: 10px; 
+        max-width: 700px; 
+        width: 100%;
+        margin: 30px auto;
+    }
+    
+    /* MESA STYLES */
+    .mesa {
+        aspect-ratio: 1/1;
+        background: #28a745; 
+        color: #fff;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px; 
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        font-size: 1rem;
+        border: 1px solid rgba(255,255,255,0.1); 
+        text-shadow: 0 0 2px rgba(0,0,0,0.5); 
+        text-align: center;
+        line-height: 1.2;
+    }
+    .mesa:hover {
+        transform: translateY(-3px) scale(1.03); 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 15px rgba(255,255,255,0.1);
+    }
+    
+    .mesa.reservada { 
+        background: #dc3545; 
+        color: #fff; 
+        cursor: not-allowed;
+        border-color: #f00;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    
+    .mesa.cancelamento-solicitado {
+        background: #6c757d; 
+        cursor: not-allowed;
+        border-color: #999;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .mesa.selecionada {
+        background: #007bff; 
+        box-shadow: 0 0 0 4px #007bff, 0 8px 20px rgba(0,0,0,0.6); 
+        border-color: #007bff;
+    }
+    
+    .espaco {
+        background: rgba(255,255,255,0.05); 
+        pointer-events: none;
+        border: none;
+        box-shadow: none;
+        border-radius: 8px; 
+    }
+
+    /* Legendas de Status */
+    .status-legend {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        max-width: 650px;
+        width: 100%;
+        padding: 0 10px;
+    }
+    .status-legend div {
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .status-legend div span {
+            text-transform: uppercase;
+    }
+
+    /* FORMULÁRIO - DESIGN SOFISTICADO */
+    form {
+        background: #1a1a1a; 
+        padding: 35px 40px; 
+        border-radius: 20px; 
+        margin-top: 40px;
+        max-width: 500px; 
+        width: 100%;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+        border: 1px solid #333;
+        animation: fadeIn 0.8s ease-out; 
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    label {
+        display: block;
+        margin-top: 20px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #ccc; 
+    }
+    input, select {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        background: #2a2a2a; 
+        color: #eee;
+        border: 1px solid #4a4a4a;
+        padding: 14px; 
+        border-radius: 10px;
+        appearance: none; 
+        -webkit-appearance: none;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input:focus, select:focus {
+            outline: none;
+            border-color: #d4af37; 
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5), inset 0 1px 3px rgba(0,0,0,0.3);
+            background: #222222;
+    }
+    
+    #total {
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.5rem; 
+        margin-top: 30px;
+        padding: 15px;
+        border-top: 1px solid #333;
+        color: #d4af37; 
+        text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+    }
+    form button {
+        margin-top: 25px;
+        width: 100%;
+        background: linear-gradient(145deg, #d4af37, #a38127); 
+        color: #000; 
+        padding: 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        letter-spacing: 0.5px;
+    }
+    form button:hover {
+        background: linear-gradient(145deg, #a38127, #d4af37); 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.7), 0 0 20px rgba(212, 175, 55, 0.5);
+        transform: translateY(-2px);
+    }
+    
+    /* Aviso Style */
+    .aviso {
+            border-left: 4px solid #d4af37; 
+            background-color: #222222; 
+            color: #e0e0e0;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 25px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* Modal PIX */
+    .modal-content {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            color: #f0f0f0;
+            padding: 30px; 
+            width: 90%; 
+            max-width: 450px; 
+            border-radius: 15px; 
+    }
+    .modal-content h2 {
+            color: #d4af37;
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+            font-size: 2rem;
+            margin-bottom: 20px;
+    }
+    .modal-content strong {
+            color: #d4af37;
+    }
+    .modal-content button {
+            background: linear-gradient(145deg, #25d366, #1da851) !important;
+            color: #fff !important;
+            padding: 15px 30px !important;
+            border-radius: 10px;
+            font-weight: bold;
+            border: none;
+            margin-top: 30px !important; 
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            font-size: 1.1rem !important;
+            width: 100% !important; 
+    }
+    .modal-content button:hover {
+            background: #1da851 !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            transform: translateY(-1px);
+    }
+    #btnCopiarPix {
+            background: #007bff !important; 
+            color: white !important; 
+            padding: 10px 15px !important; 
+            border-radius: 10px !important;
+            font-size: 0.9rem !important;
+            width: auto !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            cursor: pointer !important;
+            border: none !important;
+    }
+    #btnCopiarPix:hover {
+            background: #0069d9 !important;
+    }
+    #chavePixInput {
+            flex-grow: 1; 
+            margin-bottom: 0; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            padding: 10px; 
+            border-radius: 10px; 
+            background: #2a2a2a; 
+            border: 1px solid #4a4a4a; 
+            color: #eee;
+    }
+    .pix-input-container {
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            align-items: center;
+    }
+
+
+    .modal {
         display: none;
         position: fixed;
         z-index: 9999;
@@ -384,930 +327,666 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.75);
         justify-content: center;
         align-items: center;
     }
-    .modal-content-edit {
-        background-color: var(--bg-card);
-        padding: 25px;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 450px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    .modal-content-edit label {
-        display: block;
-        margin-top: 10px;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-    .modal-content-edit input, .modal-content-edit select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    .modal-content-edit h2 {
-        margin-top: 0;
-        color: var(--text-dark);
-    }
     .close-button {
-        float: right;
+        position: absolute; 
+        top: 10px; 
+        right: 20px;
         font-size: 28px;
+        font-weight: 300;
+        cursor: pointer;
+        color: #d4af37; 
+    }
+
+    /* Style for the BIG WARNING (Duplicate Reservation) */
+    .duplicate-warning {
+        background-color: #ffd700; /* Fundo Amarelo/Dourado para chamar a atenção */
+        color: #333; /* Texto escuro */
+        padding: 25px;
+        border-radius: 15px;
+        margin: 30px auto;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        border: 3px solid #dc3545; /* Borda Vermelha para urgência */
+    }
+    .duplicate-warning h3 {
+        color: #dc3545; /* Vermelho forte */
+        font-size: 1.8rem;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    .duplicate-warning p {
+        font-size: 1.1rem;
+        line-height: 1.4;
+    }
+    
+    /* NOVO: Estilo para o botão de Prosseguir do Aviso */
+    .duplicate-warning .proceed-button {
+        background: #007bff; /* Azul para contraste e destaque */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
-        color: #aaa;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
+        font-size: 1rem;
     }
-    .close-button:hover {
-        color: #333;
+    .duplicate-warning .proceed-button:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
     }
 
-    /* RESPONSIVIDADE (Novas Regras de Tabela em Card View) */
+
+    /* RESPONSIVIDADE FINAL */
     @media (max-width: 768px) {
-        body { padding: 0; }
-        .container {
-            padding: 15px;
-            border-radius: 0;
-            box-shadow: none;
-            min-height: 100vh;
-        }
-        h1 {
-            font-size: 1.8em;
-        }
-        .user-info {
-             flex-direction: column;
-             align-items: flex-start;
-             padding-bottom: 10px;
-        }
-        .logout-button {
-             margin-top: 10px;
-             font-size: 0.9rem;
-        }
-        .actions-bar {
-            flex-direction: column;
-            gap: 10px;
-        }
-        .search-area {
-            width: 100%;
-        }
-        .pdf-button {
-            width: 100%;
-        }
-        .total-reservas {
-            font-size: 1rem;
-            padding: 10px;
-        }
-        
-        /* 1. Oculta o cabeçalho original da tabela */
-        #reservasTable thead {
-            display: none;
-        }
-
-        /* 2. Transforma a linha da tabela (<tr>) em um bloco/card */
-        #reservasTable tr {
-            display: block;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            padding: 10px;
-            background-color: var(--bg-card);
-        }
-        
-        /* 3. Transforma a célula da tabela (<td>) em um bloco para empilhamento vertical */
-        #reservasTable td {
-            display: flex; /* Para alinhar o label com o valor */
-            justify-content: space-between;
-            text-align: right;
-            border: none; /* Remove a borda padrão */
-            padding: 8px 0; /* Padding vertical */
-            font-size: 0.95rem;
-        }
-        
-        /* 4. Injeta o cabeçalho (data-label) usando pseudo-elemento */
-        #reservasTable td::before {
-            content: attr(data-label);
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #555; /* Cor para o label */
-            padding-right: 10px;
-            text-align: left;
-            flex-shrink: 0; /* Impede que o label encolha */
-        }
-        
-        /* 5. Telefone: Ajuste a coluna de telefone para alinhar o número e o botão PIX */
-        #reservasTable td:nth-child(3) {
-            flex-direction: column; /* Telefone e botão PIX ficam um abaixo do outro */
-            align-items: flex-start;
-            text-align: left;
-        }
-        #reservasTable td:nth-child(3) .pix-reminder-button {
-            margin-left: 0;
-            text-align: center;
-            width: 100%;
-            margin-top: 5px;
-        }
-        
-        /* 6. Ação: Ajuste a coluna de ação para alinhar à esquerda e ocupar o espaço total */
-        #reservasTable td:nth-child(9) { 
-            flex-direction: column;
-            align-items: flex-start;
-            padding-top: 10px;
-            padding-bottom: 5px;
-            border-top: 1px dashed var(--border-color);
-            margin-top: 5px;
-            text-align: left; 
-        }
-        #reservasTable td:nth-child(9)::before {
-            display: none; /* Não exibe o label "Ação" */
-        }
-        .action-button {
-            font-size: 0.8rem;
-            padding: 8px 10px;
-            width: 100%;
-        }
-
-        /* Login screen compacta */
-        .login-container {
-            padding: 30px 25px;
-        }
+            .title-box { padding: 10px 20px; border-radius: 10px; }
+            .title-box h1 { font-size: 2.2rem; } 
+            .title-box .subtitle { font-size: 1rem; }
+            .header-content img { height: 60px; }
+            .header-content { gap: 15px; } 
+            
+            .grid { 
+                max-width: 100%; 
+                gap: 6px; 
+            }
+            
+            .mesa { font-size: 0.8rem; border-radius: 8px; }
+            form { padding: 25px; margin-top: 30px; border-radius: 15px; }
+            label { font-size: 0.9rem; margin-top: 15px; }
+            input, select { padding: 10px; border-radius: 8px; font-size: 0.95rem; }
+            #total { font-size: 1.2rem; padding: 12px; }
+            form button { padding: 14px; font-size: 1rem; border-radius: 8px; }
+            .aviso { padding: 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 20px; }
+            .status-legend { gap: 10px; }
+            .status-legend div { padding: 5px 8px; font-size: 0.75rem; border-radius: 4px; }
+            .modal-content button { font-size: 1rem !important; padding: 12px 25px !important; }
+            #chavePixInput { font-size: 1rem; padding: 8px; }
+            #btnCopiarPix { font-size: 0.8rem !important; padding: 8px 12px !important; }
     }
-  </style>
+
+    @media (max-width: 480px) { 
+            body { padding: 10px; } 
+            
+            .header-content { 
+                gap: 10px; 
+                flex-direction: row; 
+                align-items: center;
+                justify-content: space-around;
+            }
+            .header-content img { height: 45px; }
+            .title-box { 
+                padding: 10px 15px; 
+                min-width: unset; 
+                flex-grow: 1;
+                margin: 0;
+            }
+            .title-box h1 { font-size: 1.8rem; } 
+            .title-box .subtitle { font-size: 0.8rem; }
+            
+            .grid { gap: 5px; } 
+            .mesa { font-size: 0.7rem; border-radius: 5px; } 
+
+            form { padding: 20px; margin-top: 25px; border-radius: 12px; }
+            label { font-size: 0.85rem; margin-top: 12px; }
+            input, select { padding: 8px; border-radius: 6px; font-size: 0.9rem; }
+            #total { font-size: 1.1rem; padding: 10px; }
+            form button { padding: 12px; font-size: 0.95rem; border-radius: 6px; }
+            .aviso { padding: 12px; border-radius: 6px; font-size: 0.8rem; margin-top: 15px; }
+            .status-legend div { font-size: 0.65rem; padding: 4px 6px; }
+            
+            .modal-content {
+                padding: 20px; 
+            }
+            .modal-content h2 {
+                font-size: 1.5rem;
+            }
+            .modal-content button {
+                padding: 10px !important;
+                font-size: 0.9rem !important;
+            }
+            .duplicate-warning {
+                padding: 15px;
+            }
+            .duplicate-warning h3 {
+                font-size: 1.4rem;
+            }
+            .duplicate-warning p {
+                font-size: 1rem;
+            }
+    }
+    </style>
 </head>
 <body>
-  
-    <div id="login-screen">
-        <div class="login-container">
-            <h1>Acesso ao Painel</h1>
-            <input type="email" id="email" placeholder="E-mail" required>
-            <input type="password" id="password" placeholder="Senha" required>
-            <button onclick="login()">Entrar</button>
-            <div id="error-message"></div>
+    <div class="header-content">
+        <img src="img/tracos.png" alt="Escola Traços e Letras">
+        <div class="title-box">
+            <h1>Festa da Família</h1>
+            <span class="subtitle">Reserva de Mesas</span>
         </div>
-    </div>
-    <div id="dashboard-content">
-        <div class="container">
-            
-            <div id="user-info" class="user-info">
-                <span>
-                    <img id="profile-img" class="profile-photo" src="" alt="Foto de Perfil">
-                    Olá, <span id="saudacao-nome">Carregando...</span>
-                </span>
-                <button class="logout-button" onclick="fazerLogout()">Sair</button>
-            </div>
-            <h1>Gestão de Reservas</h1>
-            
-            <div class="actions-bar">
-                <div class="search-area">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="search-input" placeholder="Buscar por Aluno, Turma, Mesa..." onkeyup="filtrarTabela()">
-                </div>
-                <button class="pdf-button" onclick="exportarPDF()">⬇️ Baixar Relatório (PDF)</button>
-            </div>
-
-            <div class="total-reservas">Total de Mesas no Painel: <span id="totalReservas">0</span></div>
-            
-            <div id="loading" class="loading-text" style="text-align: center;">Carregando dados...</div>
-            
-            <table id="reservasTable">
-                <thead>
-                    <tr>
-                    <th data-column-index="0" class="sortable">Mesa(s)</th>
-                    <th data-column-index="1" class="sortable">Responsável</th>
-                    <th data-column-index="2" class="sortable">Telefone</th> 
-                    <th data-column-index="3" class="sortable">Aluno / Turma</th>
-                    <th data-column-index="4" class="sortable">Valor (R$)</th>
-                    <th data-column-index="5" class="sortable">Pagamento</th> 
-                    <th data-column-index="6" class="sortable sort-desc">Data/Hora</th> 
-                    <th>Status</th>
-                    <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-                </table>
-            </div>
-    </div>
-    <div id="editModal">
-        <div class="modal-content-edit">
-            <span class="close-button" onclick="fecharModalEdicao()">&times;</span>
-            <h2>Editar Reserva</h2>
-            <p>Editando reserva principal da(s) mesa(s): <strong id="editMesas"></strong></p>
-            
-            <input type="hidden" id="editMesaPrincipalId">
-
-            <label for="editNome">Responsável:</label>
-            <input type="text" id="editNome">
-
-            <label for="editTelefone">WhatsApp (Apenas números):</label>
-            <input type="tel" id="editTelefone" pattern="[0-9]{11}">
-            
-            <label for="editAluno">Aluno:</label>
-            <input type="text" id="editAluno">
-            
-            <label for="editTurma">Turma:</label>
-            <input type="text" id="editTurma">
-            
-            <label for="editFormaPagamento">Forma de Pagamento:</label>
-            <select id="editFormaPagamento" onchange="toggleOutrosField()">
-                <option value="Pix">Pix</option>
-                <option value="Cartao Credito">Cartão de Crédito</option>
-                <option value="Cartao Debito">Cartão de Débito</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Outros">Outros...</option>
-            </select>
-            <input type="text" id="editOutrosDetalhe" placeholder="Especifique o tipo de pagamento" style="display: none; margin-top: -10px;">
-            <button class="action-button confirm-button" onclick="salvarEdicao()">Salvar Alterações</button>
-            <button class="action-button delete-button" onclick="fecharModalEdicao()" style="background-color: #6c757d;">Cancelar</button>
-        </div>
+        <img src="img/gaudi.png" alt="Colégio Antoni Gaudí"> 
     </div>
 
-<script type="module">
-    // *** CÓDIGO JAVASCRIPT UNIFICADO ***
+<div class="status-legend">
+    <div style="background-color: #28a745; color: white;">
+        🟩 <span>DISPONÍVEL</span>
+    </div>
+    <div style="background-color: #dc3545; color: white;">
+        🟥 <span>RESERVADA</span>
+    </div>
+</div>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; 
+<div class="aviso" style="max-width: 650px; width: 100%; margin: 15px auto;">
+    <strong>Atenção:</strong> Caso você desista da compra ou repasse a mesa para outra pessoa, por favor, peço que informe com urgência a secretaria escolar. Isso ajuda na organização do evento!
+</div>
 
-    // Sua Configuração Exata do Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
-      authDomain: "reservas-tracos-culturais.firebaseapp.com",
-      databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
-      projectId: "reservas-tracos-culturais",
-      storageBucket: "reservas-tracos-culturais.appspot.com",
-      messagingSenderId: "53243907823",
-      appId: "1:53243907823:web:1eee06470fe6554f0b551a"
-    };
+<div class="grid" id="mesas"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app); 
-    
-    // Elementos DOM
-    const dashboardContent = document.getElementById('dashboard-content');
-    const loginScreen = document.getElementById('login-screen');
-    const errorMessageDiv = document.getElementById('error-message');
-    const tbody = document.querySelector('#reservasTable tbody');
-    const loadingDiv = document.getElementById('loading');
-    const totalReservasSpan = document.getElementById('totalReservas');
-    const searchInput = document.getElementById('search-input');
-    const headers = document.querySelectorAll('#reservasTable th.sortable');
-    const formaPagamentoSelect = document.getElementById('editFormaPagamento');
-    const outrosDetalheInput = document.getElementById('editOutrosDetalhe');
-    const userInfoDiv = document.getElementById('user-info');
-    const saudacaoSpan = document.getElementById('saudacao-nome');
-    const profileImg = document.getElementById('profile-img');
-    
-    let dadosAgrupados = [];
-    let sortColumn = 6; 
-    let sortDirection = 'desc';
-    
-    const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
-    
-    // Array de labels (usado no mobile view)
-    const tableLabels = [
-        'MESA(S)', 'RESPONSÁVEL', 'TELEFONE', 'ALUNO / TURMA', 
-        'VALOR (R$)', 'PAGAMENTO', 'DATA/HORA', 'STATUS', 'AÇÃO'
-    ];
-
-
-    // ====================================================
-    // 1. LÓGICA DE AUTENTICAÇÃO (CONTROLE DE TELAS)
-    // ====================================================
-    
-    // Mostra a tela de login primeiro
-    loginScreen.style.display = 'flex';
-    dashboardContent.style.display = 'none';
-
-    // 🚨🚨🚨 BLOCO DE CONFIGURAÇÃO DE NOME E FOTO 🚨🚨🚨
-    // Mapeamento de E-mail para Nome de Exibição
-    const userDisplayNames = {
-        "SEU.EMAIL.AQUI@escola.com.br": "SEU NOME COMPLETO AQUI", 
-        "financeiro@escola.com.br": "Financeiro",   
-        "admin@escola.com.br": "Administrador"       
-    };
-    
-    // Mapeamento de E-mail para URL da Foto (Use URLs públicas, como do Imgur, Google Drive, ou seu próprio servidor)
-    const userProfilePhotos = {
-        "SEU.EMAIL.AQUI@escola.com.br": "URL_DA_SUA_FOTO_AQUI.jpg", // Exemplo: "https://i.imgur.com/SuaFoto.jpg"
-        "financeiro@escola.com.br": "https://i.imgur.com/FinanceiroDefault.png", 
-        "admin@escola.com.br": "https://i.imgur.com/AdminDefault.png"       
-    };
-    // 🚨🚨🚨 FIM DO BLOCO DE CONFIGURAÇÃO 🚨🚨🚨
-    
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Usuário logado: Esconde login, mostra dashboard
-            loginScreen.style.display = 'none';
-            dashboardContent.style.display = 'block'; 
+<div id="duplicateWarning" class="duplicate-warning" style="display: none;">
+    </div>
+<div id="pixModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="fecharModal()">&times;</span>
+            <h2>Solicitação de Reserva Registrada!</h2>
+            <p style="font-weight: bold; color: #d4af37;">Sua reserva está *PENDENTE* e será liberada se o pagamento não for confirmado a tempo.</p>
             
-            // --- Lógica de Personalização ---
-            const email = user.email;
+            <p style="margin-top: 20px;"><strong>Valor Total:</strong> <span id="pixValor"></span></p>
             
-            // 1. Nome de Exibição
-            let nomeDisplay = userDisplayNames[email] || email.split('@')[0];
-            if (nomeDisplay === email.split('@')[0]) {
-                 nomeDisplay = nomeDisplay.replace('.', ' ');
-                 nomeDisplay = nomeDisplay.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-            }
-            saudacaoSpan.textContent = nomeDisplay;
-            
-            // 2. Foto de Perfil
-            const fotoUrl = userProfilePhotos[email] || 'https://i.imgur.com/p9vF6qj.png'; // Fallback para ícone genérico se não mapeado
-            profileImg.src = fotoUrl;
-            
-            userInfoDiv.style.display = 'flex'; 
-            
-            // Inicia o carregamento dos dados
-            iniciarCarregamentoDeDados(); 
-            
-        } else {
-            // Usuário não logado: Mostra login, esconde dashboard
-            dashboardContent.style.display = 'none';
-            loginScreen.style.display = 'flex';
-            loadingDiv.textContent = 'Carregando dados...';
-        }
-    });
-
-    // Função de Login 
-    window.login = async function() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        errorMessageDiv.textContent = ''; 
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            // O onAuthStateChanged será acionado e mostrará o dashboard.
-        } catch (error) {
-            console.error("Erro de Login:", error);
-            
-            let message = "❌ Erro desconhecido. Tente novamente.";
-
-            switch (error.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    message = "❌ E-mail ou senha incorretos. Verifique suas credenciais.";
-                    break;
-                case 'auth/invalid-email':
-                    message = "❌ O formato do e-mail é inválido.";
-                    break;
-                default:
-                    message = "❌ Erro ao tentar conectar. Verifique o console para detalhes.";
-            }
-
-            errorMessageDiv.textContent = message;
-        }
-    }
-
-    // Função de Logout
-    window.fazerLogout = async function() {
-        if(confirm("Tem certeza que deseja sair do Painel de Gestão?")) {
-            try {
-                await signOut(auth);
-                // O onAuthStateChanged fará a transição para a tela de login.
-            } catch (error) {
-                alert("❌ Erro ao fazer logout: " + error.message);
-                console.error("Erro de Logout:", error);
-            }
-        }
-    }
-
-    // ====================================================
-    // 2. FUNÇÕES DO DASHBOARD
-    // ====================================================
-    
-    function iniciarCarregamentoDeDados() {
-        onValue(ref(db, "reservas"), (snapshot) => {
-            loadingDiv.style.display = 'none';
-            dadosAgrupados = [];
-
-            const reservasData = snapshot.val();
-            if (!reservasData) {
-                renderizarTabela([]);
-                return;
-            }
-
-            const reservasMap = new Map();
-
-            for (const mesaId in reservasData) {
-                const reserva = reservasData[mesaId];
-                if (!reserva.status) reserva.status = 'pendente'; 
+            <label for="chavePixInput" style="margin-top: 15px; margin-bottom: 5px; color: #ccc;">Chave Pix (CNPJ):</label>
+            <div class="pix-input-container">
+                <input type="text" id="chavePixInput" value="45.701.401/0001-07" readonly />
                 
-                const formaPagamento = reserva.formaPagamento || 'Pix';
-                const telefone = reserva.telefone || 'semtel'; // Telefone é importante para o Agrupamento e WhatsApp
+                <button onclick="copiarPix()" id="btnCopiarPix">
+                    📋 Copiar
+                </button>
+            </div>
 
-                // 🚨 CORREÇÃO PRINCIPAL: Adiciona mesasSelecionadas (array das mesas no pedido) na chave 🚨
-                const mesasLista = reserva.mesasSelecionadas ? reserva.mesasSelecionadas.sort().join('|') : 'semmesas';
-                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${reserva.valorTotal}-${telefone}-${formaPagamento}-${mesasLista}`;
-                // 🚨 FIM DA CORREÇÃO PRINCIPAL 🚨
-                
-                if (!reservasMap.has(chaveReserva)) {
-                    reservasMap.set(chaveReserva, {
-                        ...reserva,
-                        formaPagamento: formaPagamento, 
-                        telefone: telefone === 'semtel' ? null : telefone,
-                        mesas: [mesaId]
-                    });
-                } else {
-                    reservasMap.get(chaveReserva).mesas.push(mesaId);
-                }
-            }
-            
-            dadosAgrupados = Array.from(reservasMap.values());
-            ordenarTabela(sortColumn, sortDirection);
-
-        }, (error) => {
-            loadingDiv.textContent = `❌ ERRO FATAL ao buscar dados: ${error.message}.`;
-            console.error("Firebase Error:", error);
-        });
-    }
-
-    window.toggleOutrosField = function() {
-        if (formaPagamentoSelect.value === 'Outros') {
-            outrosDetalheInput.style.display = 'block';
-            outrosDetalheInput.focus();
-        } else {
-            outrosDetalheInput.style.display = 'none';
-        }
-    }
-    
-    window.filtrarTabela = function() {
-        const termo = searchInput.value.toLowerCase();
-        const linhas = tbody.querySelectorAll('tr');
-
-        let mesasVisiveis = 0;
-        linhas.forEach(row => {
-            const textoLinha = row.textContent.toLowerCase();
-            const isVisible = textoLinha.includes(termo);
-            row.style.display = isVisible ? '' : 'none';
-            
-            if(isVisible) {
-                const mesasText = row.querySelector('td:first-child').textContent;
-                // Conta o número de mesas neste grupo visível
-                const count = mesasText.split(',').filter(m => m.trim().length > 0).length;
-                mesasVisiveis += count;
-            }
-        });
-        totalReservasSpan.textContent = mesasVisiveis.toString();
-    }
-
-    function ordenarTabela(index, direction) {
-        headers.forEach(h => {
-            h.classList.remove('sort-asc', 'sort-desc');
-        });
-
-        headers[index].classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
-
-        dadosAgrupados.sort((a, b) => {
-            let aVal, bVal;
-            
-            switch (index) {
-                case 0: aVal = parseInt(a.mesas[0]); bVal = parseInt(b.mesas[0]); break; 
-                case 1: aVal = a.nome; bVal = b.nome; break; 
-                case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; // Telefone
-                case 3: aVal = a.aluno; bVal = b.aluno; break; 
-                case 4: aVal = a.valorTotal; bVal = b.valorTotal; break; 
-                case 5: aVal = a.formaPagamento || 'Pix'; bVal = b.formaPagamento || 'Pix'; break; 
-                case 6: 
-                default:
-                    // Ordenação por Data/Hora (coluna 6)
-                    const aDate = new Date(`${a.data.split('/').reverse().join('-')}T${a.horario}:00`);
-                    const bDate = new Date(`${b.data.split('/').reverse().join('-')}T${b.horario}:00`);
-                    return direction === 'asc' ? aDate - bDate : bDate - aDate;
-            }
-
-            if (index === 6) return 0; // Se for data, já foi ordenada acima.
-
-            if (typeof aVal === 'number') {
-                return direction === 'asc' ? aVal - bVal : bVal - aVal;
-            } else {
-                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-            }
-        });
-
-        renderizarTabela(dadosAgrupados);
-    }
-    
-    // Função para gerar a mensagem de Lembrete PIX (Sem emojis problemáticos)
-    function getMensagemLembretePix(reserva) {
-        const PIX_CHAVE = "45.701.401/0001-07";
-        const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-        const valorTexto = `R$ ${reserva.valorTotal.toFixed(2).replace('.', ',')}`;
-
-        const mensagem = `
-*LEMBRETE DE RESERVA - FESTA DA FAMÍLIA*
-
-Olá, ${reserva.nome}!
-
-Identificamos a sua reserva das *Mesas ${mesasTexto}* no valor de *${valorTexto}* para o nosso evento.
-
-O prazo para a confirmação via PIX é de *48 horas*. Se você ainda não pagou, segue a chave PIX novamente:
-
-*CHAVE PIX CNPJ:* ${PIX_CHAVE}
-*Nome:* Colégio Antoni Gaudi
-
-*Lembrete:* Sua reserva será liberada se o pagamento não for confirmado a tempo.
-
-Agradecemos e aguardamos a sua confirmação!
-        `.trim();
-        return mensagem;
-    }
-
-    // 🚨 FUNÇÃO MODIFICADA PARA ADICIONAR data-label E NOVO STATUS 🚨
-    function renderizarTabela(reservas) {
-        tbody.innerHTML = '';
-        let totalMesas = 0; 
+            <p><strong>Nome:</strong> Banco Cora (Colégio Antoni Gaudi)</p>
+        <p style="margin-top: 25px; font-size: 0.95rem; color: #dc3545; font-weight: bold;">
+            ⚠️ <strong>ATENÇÃO:</strong> O pagamento deve ser confirmado no mesmo dia da reserva para garantir as mesas, ou a reserva será liberada.
+        </p>
         
-        // Array de labels
-        const labels = tableLabels; // Usa a constante definida acima
+        <button onclick="enviarWhatsapp()">
+            📲 Enviar a reserva para o WhatsApp
+        </button>
+        </div>
+    </div>
+    <form id="formReserva">
+        <label for="aluno">🎓 Nome completo do Aluno:</label>
+        <input type="text" id="aluno" required />
 
-        reservas.forEach(reserva => {
-            const row = tbody.insertRow();
+        <label for="turma">📚 Turma:</label>
+    <select id="turma" required>
+        <option value="">Selecione a turma</option>
+        <option value="Maternal">Maternal</option>
+        <option value="Grupo 1">Grupo 1</option>
+        <option value="Grupo 2">Grupo 2</option>
+        <option value="Grupo 3">Grupo 3</option>
+        <option value="1º ano">1º ano</option>
+        <option value="2º ano">2º ano</option>
+        <option value="3º ano">3º ano</option>
+        <option value="4º ano">4º ano</option>
+        <option value="5º ano">5º ano</option>
+        <option value="6º ano">6º ano</option>
+        <option value="7º ano">7º ano</option>
+        <option value="8º ano">8º ano</option>
+        <option value="9º ano">9º ano</option>
+        <option value="1ª série EM">1ª série (Ensino Médio)</option>
+        <option value="2ª série EM">2ª série (Ensino Médio)</option>
+        <option value="3ª série EM">3ª série (Ensino Médio)</option>
+    </select>
+
+        <label for="nome">👤 Responsável:</label>
+        <input type="text" id="nome" required />
+        
+        <label for="telefone">📱 WhatsApp (Apenas números com DDD):</label>
+        <input type="tel" id="telefone" pattern="[0-9]{11,13}" required />
+
+        <label for="cadeirasExtras">🪑 Quantidade de Cadeiras Extras (R$ 10,00 cada, máx. 2):</label>
+        <input type="number" id="cadeirasExtras" value="0" min="0" max="2" onchange="atualizarTotal()" />
+        <div class="aviso">
+            <strong>Atenção: Limite de Cadeiras Extras!</strong> Devido à limitação de espaço no salão, o máximo permitido é de 2 cadeiras extras por reserva (total), independentemente do número de mesas compradas. Não será permitida a compra de cadeiras por terceiros para serem utilizadas em mesas que já atingiram o limite de 2. Por favor, respeitem as regras do evento para garantirmos uma festa linda e organizada para todos.
+        </div>
+        <div id="total">Total: R$ 0,00</div>
+        <button type="submit">Reservar</button>
+    </form>
+    
+    <div style="margin-top: 20px; text-align: center; max-width: 500px; width: 100%;">
+        <button onclick="toggleCancelamentoForm()" style="
+            background: none; 
+            border: 1px solid #dc3545; 
+            color: #dc3545; 
+            padding: 10px 20px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1rem;
+            width: 100%;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        ">Precisa Cancelar Sua Reserva? Clique Aqui</button>
+    </div>
+    
+    <form id="formCancelamento" style="margin-top: 20px; max-width: 500px; width: 100%; display: none;">
+        <h3 style="color: #f0f0f0;">Solicitar Cancelamento de Reserva</h3>
+        <p style="font-size: 0.9rem; color: #ccc;">Para solicitar o cancelamento, <strong>confirme o nome e o telefone cadastrados</strong> e informe o número de uma das mesas reservadas.</p>
+
+        <label for="cancelamentoNome">👤 Nome Completo do Responsável (Exatamente como na reserva):</label>
+        <input type="text" id="cancelamentoNome" required />
+
+        <label for="cancelTelefone">📱 WhatsApp do Responsável (Exatamente como na reserva):</label>
+        <input type="tel" id="cancelTelefone" pattern="[0-9]{11,13}" required />
+
+        <label for="cancelMesa">Número de uma Mesa Reservada (ex: 05):</label>
+        <input type="text" id="cancelMesa" pattern="[0-9]{1,2}" required />
+
+        <button type="submit" style="background: linear-gradient(145deg, #dc3545, #a02030); color: white;">Solicitar Cancelamento</button>
+    </form>
+
+    <script type="module">
+        import { get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        // Substitua os valores de configuração do Firebase pelos seus reais se for rodar o código.
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
+            authDomain: "reservas-tracos-culturais.firebaseapp.com",
+            databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
+            projectId: "reservas-tracos-culturais",
+            storageBucket: "reservas-tracos-culturais.appspot.com",
+            messagingSenderId: "53243907823",
+            appId: "1:53243907823:web:1eee06470fe6554f0b551a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const reservas = {};
+        const selecionadas = new Set();
+        const totalMesas = 100;
+        let bypassDuplicateCheck = false; // NOVO: Flag para ignorar a checagem de duplicidade na segunda tentativa
+
+        const mesasContainer = document.getElementById("mesas");
+        const form = document.getElementById("formReserva");
+        const formCancelamento = document.getElementById("formCancelamento");
+        const totalDiv = document.getElementById("total");
+        const duplicateWarningDiv = document.getElementById("duplicateWarning"); 
+
+        const VALOR_MESA = 150.00;
+        const VALOR_CADEIRA = 10.00; 
+
+        window.atualizarTotal = function() {
+            let cadeirasExtras = parseInt(document.getElementById("cadeirasExtras")?.value) || 0;
+            cadeirasExtras = Math.max(0, Math.min(2, cadeirasExtras)); 
+            document.getElementById("cadeirasExtras").value = cadeirasExtras;
+
+            const valorMesas = selecionadas.size * VALOR_MESA;
+            const valorCadeiras = cadeirasExtras * VALOR_CADEIRA;
             
-            const numMesas = reserva.mesas.length;
-            totalMesas += numMesas;
+            const valor = valorMesas + valorCadeiras;
+            totalDiv.textContent = `Total: R$ ${valor.toFixed(2).replace('.', ',')}`;
+        }
+        
+        // Função para normalizar strings (remove acentos, toUpperCase)
+        function normalizeString(str) {
+            if (!str) return '';
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+        }
 
-            // 0. Mesa(s)
-            const mesasCell = row.insertCell();
-            mesasCell.textContent = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', '); 
-            mesasCell.setAttribute('data-label', labels[0]);
-
-            // 1. Responsável
-            const responsavelCell = row.insertCell();
-            responsavelCell.textContent = reserva.nome; 
-            responsavelCell.setAttribute('data-label', labels[1]);
-
-            // 2. Telefone
-            const telCell = row.insertCell(); 
-            telCell.setAttribute('data-label', labels[2]);
-            const telefoneFormatado = reserva.telefone ? reserva.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') : 'N/A';
+        // Função para exibir o aviso de duplicidade
+        function showDuplicateWarning(reservaExistente) {
+            const mesas = reservaExistente.mesasSelecionadas.join(", ");
             
-            // Reintrodução do link de Lembrete PIX e formatação do telefone
-            telCell.innerHTML = `
-              ${telefoneFormatado} 
-              ${reserva.telefone ? `<a href="https://wa.me/55${reserva.telefone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(getMensagemLembretePix(reserva))}" target="_blank" class="pix-reminder-button">
-                Lembrete PIX
-              </a>` : ''}
+            duplicateWarningDiv.innerHTML = `
+                <h3>🚨 ATENÇÃO: Reserva Já Feita! 🚨</h3>
+                <p>
+                    O aluno <strong>${reservaExistente.aluno}</strong> já possui uma reserva ativa para as
+                    <span style="color: #dc3545; font-weight: bold;">MESAS ${mesas}</span>.
+                </p>
+                <p>
+                    A reserva foi feita por <strong>${reservaExistente.nome}</strong> no dia
+                    ${reservaExistente.data} e está com o status 
+                    <strong style="color: ${reservaExistente.status === 'paga' ? '#28a745' : '#d4af37'}">
+                        ${reservaExistente.status.toUpperCase()}
+                    </strong>.
+                </p>
+                <p>
+                    Se você já pagou, ignore. Caso contrário, confira os detalhes da reserva.
+                    Não é necessário reservar novamente.
+                </p>
+                <button class="proceed-button" onclick="continueReservation()">
+                    Deseja prosseguir com uma nova reserva para este aluno mesmo assim?
+                </button>
             `;
+            duplicateWarningDiv.style.display = 'block';
+            duplicateWarningDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             
-            // 3. Aluno / Turma
-            const alunoTurmaCell = row.insertCell();
-            alunoTurmaCell.textContent = `${reserva.aluno} (${reserva.turma})`; 
-            alunoTurmaCell.setAttribute('data-label', labels[3]);
+            // Oculta o formulário de reserva 
+            form.style.display = 'none';
+        }
+        
+        // NOVO: Função chamada pelo botão "Deseja prosseguir"
+        window.continueReservation = function() {
+            bypassDuplicateCheck = true; // Define a flag para ignorar o check na próxima submissão
+            duplicateWarningDiv.style.display = 'none'; // Oculta o aviso
+            form.style.display = 'block'; // Mostra o formulário
+            
+            // Força a re-submissão do formulário. 
+            // O listener do form, agora, vai ignorar a checagem de duplicidade por causa da flag.
+            form.requestSubmit(); 
+        }
 
-            // 4. Valor (R$)
-            const valorCell = row.insertCell();
-            valorCell.textContent = `R$ ${reserva.valorTotal.toFixed(2).replace('.', ',')}`; 
-            valorCell.setAttribute('data-label', labels[4]);
 
-            // 5. Pagamento
-            const pagamentoCell = row.insertCell();
-            const formaPagamento = reserva.formaPagamento || 'Pix';
-            pagamentoCell.textContent = formaPagamento; 
-            pagamentoCell.setAttribute('data-label', labels[5]);
-            
-            // 6. Data/Hora
-            const dataHoraCell = row.insertCell();
-            dataHoraCell.textContent = `${reserva.data} ${reserva.horario}`; 
-            dataHoraCell.setAttribute('data-label', labels[6]);
-            
-            // 7. Status
-            const statusCell = row.insertCell();
-            statusCell.setAttribute('data-label', labels[7]);
-            const status = reserva.status || 'pendente';
-            
-            // NOVO BLOCO: Lógica para determinar a classe e o texto do status
-            let statusClass = 'status-pendente'; // Padrão: Pendente
-            let statusText = 'PENDENTE (PIX)';   // Padrão: Pendente
-
-            if (status === 'paga') {
-                statusClass = 'status-confirmado';
-                statusText = 'PAGA (CONFIRMADO)';
-            } else if (status === 'cancelamento-solicitado') {
-                // AGORA TRATA O STATUS DE CANCELAMENTO
-                statusClass = 'status-cancelamento';
-                statusText = 'CANCELAMENTO SOLICITADO';
-            }
-
-            statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
-
-            // 8. Ação
-            const actionCell = row.insertCell();
-            actionCell.setAttribute('data-label', labels[8]); 
-            const mesaPrincipal = reserva.mesas[0];
-            
-            let actionHTML = '';
-            
-            // 1. CANCELAR / ESTORNAR
-            actionHTML += `<button class="action-button delete-button" onclick="cancelarReserva('${mesaPrincipal}')">❌ Cancelar / Estornar</button>`;
-            
-            // 2. EDITAR
-            actionHTML += `<button class="action-button edit-button" onclick="abrirModalEdicao('${mesaPrincipal}')">✏️ Editar</button>`;
-
-            // 3. CONFIRMAR PAGAMENTO
-            if (status === 'pendente' || status === 'cancelamento-solicitado') { // Permite confirmar mesmo se foi solicitado cancelamento
-                actionHTML += `<button class="action-button confirm-button" onclick="confirmarPagamento('${mesaPrincipal}')">✅ Confirmar</button>`;
-            } 
-            
-            // 4. MENSAGEM DE CONFIRMAÇÃO FINAL
-            if (status === 'paga') {
-                actionHTML += `<button class="action-button" style="background-color: #8e44ad; margin-top: 5px;" onclick="enviarConfirmacaoFinal('${mesaPrincipal}')">✉️ Confirmação Final</button>`; 
+        function atualizarGrid() {
+            // Garante que o container do mapa está visível
+            mesasContainer.style.display = 'grid'; 
+            // O formulário só aparece se não houver aviso de duplicidade ativo
+            if(duplicateWarningDiv.style.display !== 'block') {
+                form.style.display = 'block'; 
             }
             
-            actionCell.innerHTML = actionHTML;
-        });
-        
-        totalReservasSpan.textContent = totalMesas.toString();
-        // Filtra para garantir que apenas os resultados do filtro/busca (se houver) sejam mostrados
-        filtrarTabela(); 
-    }
+            mesasContainer.innerHTML = "";
+            for (let i = 0; i < totalMesas; i++) {
+                const posicao = i % 7; 
 
-    // ====================================================
-    // 3. FUNÇÕES DE AÇÃO (CONFIRMAR, EDITAR, CANCELAR)
-    // ====================================================
+                // Adiciona um bloco vazio a cada 4 mesas para simular o corredor
+                if (posicao === 4) { 
+                    const espaco = document.createElement("div");
+                    espaco.className = "mesa espaco";
+                    mesasContainer.appendChild(espaco);
+                }
 
-    window.confirmarPagamento = async function(mesaPrincipalId) {
-        const confirmacao = confirm(`Tem certeza que deseja CONFIRMAR o pagamento para a reserva da MESA ${mesaPrincipalId}?`);
-        
-        if (confirmacao) {
-            try {
-                const reservaParaConfirmar = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
+                const numero = (i + 1).toString().padStart(2, '0');
+                const div = document.createElement("div");
+                div.className = "mesa";
                 
-                if (!reservaParaConfirmar) {
-                    alert('❌ Erro: Reserva não encontrada localmente.');
+                // === BLOCO: RESERVA ESPECIAL PARA A ESCOLA (Mesas 01, 02, 03, 04) ===
+                const mesasDaEscola = ['01', '02', '03', '04'];
+                if (mesasDaEscola.includes(numero)) {
+                    div.textContent = 'MESA DA ESCOLA'; 
+                    div.classList.add("reservada"); 
+                    div.style.cursor = 'not-allowed';
+                    div.title = 'Reservada para a Escola';
+                    mesasContainer.appendChild(div);
+                    continue; 
+                }
+                // ===================================================
+
+                // Conteúdo padrão para as outras mesas: "Mesa 05", "Mesa 06", etc.
+                div.textContent = `Mesa ${numero}`;
+                
+                if (reservas[numero]) {
+                    const status = reservas[numero].status;
+                    
+                    if (status === 'cancelamento-solicitado') {
+                        div.classList.add("cancelamento-solicitado");
+                    } else {
+                        div.classList.add("reservada");
+                    }
+
+                    div.title = `Reservado por: ${reservas[numero].aluno} - ${reservas[numero].turma} (Resp: ${reservas[numero].nome} | Status: ${status === 'paga' ? 'Paga' : status === 'cancelamento-solicitado' ? 'Cancelamento Solicitado' : 'Pendente'})`;
+                    
+                } else {
+                    if (selecionadas.has(numero)) div.classList.add("selecionada");
+                    div.addEventListener("click", () => {
+                        // Se estiver selecionando, remove o aviso e mostra o formulário
+                        if (duplicateWarningDiv.style.display === 'block') {
+                            duplicateWarningDiv.style.display = 'none';
+                            form.style.display = 'block';
+                        }
+                        
+                        if (selecionadas.has(numero)) selecionadas.delete(numero);
+                        else selecionadas.add(numero);
+                        atualizarGrid();
+                        atualizarTotal(); 
+                    });
+                }
+
+                mesasContainer.appendChild(div);
+            }
+        }
+
+        onValue(ref(db, "reservas"), (snapshot) => {
+            Object.assign(reservas, snapshot.val() || {});
+            atualizarGrid();
+            atualizarTotal();
+        });
+
+        
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            // Oculta o aviso de duplicidade no início da submissão
+            duplicateWarningDiv.style.display = 'none';
+            form.style.display = 'block';
+
+            const aluno = document.getElementById("aluno").value;
+            const turma = document.getElementById("turma").value;
+            const nome = document.getElementById("nome").value;
+            const telefone = document.getElementById("telefone").value.replace(/[^0-9]/g, ''); 
+            let cadeirasExtras = parseInt(document.getElementById("cadeirasExtras").value) || 0;
+            cadeirasExtras = Math.max(0, Math.min(2, cadeirasExtras)); 
+            
+            // =======================================================
+            // NOVO: BLOCO DE CHECAGEM DE DUPLICIDADE (IGNORA SE FLAG ESTIVER ATIVA)
+            if (!bypassDuplicateCheck) { 
+                const alunoNormalized = normalizeString(aluno);
+                let existingReservation = null;
+
+                for (const mesa in reservas) {
+                    const reserva = reservas[mesa];
+                    if (reserva.aluno && normalizeString(reserva.aluno) === alunoNormalized && reserva.status !== 'cancelamento-solicitado') {
+                        // Encontrou uma reserva ativa ou pendente para este aluno.
+                        existingReservation = reserva;
+                        break;
+                    }
+                }
+
+                if (existingReservation) {
+                    // Mostra o aviso grande e para o processo
+                    showDuplicateWarning(existingReservation);
                     return;
                 }
-
-                const mesasIds = reservaParaConfirmar.mesas;
-                const updates = {};
-                
-                mesasIds.forEach(mesaId => {
-                    updates[`/reservas/${mesaId}/status`] = 'paga';
-                });
-
-                await update(ref(db), updates); 
-                
-                alert(`✅ Pagamento CONFIRMADO para as mesas: ${mesasIds.join(', ')}.`);
-
-            } catch (error) {
-                alert(`❌ Erro ao confirmar pagamento: ${error.message}`);
-                console.error("Erro no Firebase:", error);
-            }
-        }
-    }
-
-
-    // FUNÇÃO: CANCELAR E ESTORNAR 
-    window.cancelarReserva = async function(mesaPrincipalId) {
-        // 1. Encontra a reserva para coletar os dados
-        const reservaParaCancelar = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reservaParaCancelar) {
-            alert('❌ Erro: Reserva não encontrada localmente.');
-            return;
-        }
-        
-        const mesasIds = reservaParaCancelar.mesas;
-        const mesasTexto = mesasIds.join(', ');
-
-        // 2. Confirmação
-        const confirmacao = confirm(
-            `Tem certeza que deseja CANCELAR a reserva das mesas ${mesasTexto}? \n\n` +
-            `⚠️ Esta ação irá DELETAR a reserva do sistema e DEVE ser usada para processar o ESTORNO/DEVOLUÇÃO do valor.`
-        );
-        
-        if (confirmacao) {
-            try {
-                const updates = {};
-                
-                // Marca as mesas para exclusão (define como 'null')
-                mesasIds.forEach(mesaId => {
-                    updates[`/reservas/${mesaId}`] = null;
-                });
-
-                // Executa a exclusão atômica no Firebase
-                await update(ref(db), updates); 
-                
-                alert(`❌ Reservas das mesas ${mesasTexto} CANCELADAS e liberadas com sucesso! Fazer ESTORNO.`);
-
-                // 3. Notificação (Ação para o ADM)
-                enviarNotificacaoCancelamento(reservaParaCancelar);
-
-            } catch (error) {
-                alert(`❌ Erro ao cancelar reserva: ${error.message}`);
-                console.error("Erro no Firebase:", error);
-            }
-        }
-    }
-
-    // Função para enviar o WhatsApp de Estorno (mantida da versão anterior)
-    function enviarNotificacaoCancelamento(reserva) {
-        const mesas = reserva.mesas.join(', ');
-        const valor = reserva.valorTotal.toFixed(2).replace('.', ',');
-        const status = reserva.status === 'paga' ? 'PAGA' : 'PENDENTE'; 
-        const telefone = reserva.telefone || 'N/A';
-
-        const mensagem = `
-*CANCELAMENTO DE RESERVA/ESTORNO* 🚫
----
-*AÇÃO NECESSÁRIA: ESTORNO!*
----
-*Responsável:* ${reserva.nome}
-*Telefone:* ${telefone}
-*Aluno/Turma:* ${reserva.aluno} (${reserva.turma})
-*Mesas:* ${mesas}
-*Valor a Estornar:* R$ ${valor}
-*Status Original:* ${status}
-
-*ATENÇÃO:* Esta reserva foi deletada do sistema e o estorno deve ser processado.
-        `.trim().replace(/\n/g, '%0A');
-
-        const numeroFinanceiro = '5571999183320'; 
-
-        window.open(`https://wa.me/${numeroFinanceiro}?text=${mensagem}`, '_blank');
-    }
-    
-    // FUNÇÃO: Enviar Confirmação Final ao Cliente
-    window.enviarConfirmacaoFinal = function(mesaPrincipalId) {
-        const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reserva || reserva.status !== 'paga') { 
-            alert("❌ Erro: Apenas reservas PAGAS (Status 'Paga') podem receber o envio final.");
-            return;
-        }
-        
-        // VALORES FIXOS (Ajuste se necessário)
-        const localEvento = "Auditório Principal - Colégio Antoni Gaudi";
-        const dataEvento = "15 de Dezembro, 19:00h";
-        
-        const mesasTexto = reserva.mesas.join(', ');
-
-        const mensagemFinal = `
-*PRESENÇA CONFIRMADA!* *FESTA DA FAMÍLIA*
-
-Olá, ${reserva.nome}!
-
-Obrigado por confirmar sua reserva. Sua presença e a de seus convidados estão garantidas!
-
-*Detalhes da Sua Reserva:*
-*Responsável:* ${reserva.nome}
-*Aluno:* ${reserva.aluno} (${reserva.turma})
-*Mesa(s) Reservada(s):* ${mesasTexto}
-*Status:* PAGAMENTO CONFIRMADO
-
-*Detalhes do Evento:*
-*Local:* ${localEvento}
-*Data/Hora:* ${dataEvento}
-
-Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedência.
-        `.trim().replace(/\n/g, '%0A');
-
-        let telefoneDestino = reserva.telefone;
-
-        if (!telefoneDestino) {
-            // Se o telefone não estiver nos dados, pede ao administrador
-            const inputTel = prompt("O telefone não foi encontrado. Por favor, digite o número do WhatsApp do responsável (apenas números, com DDD):");
-            if (inputTel && inputTel.match(/^[0-9]+$/)) {
-                 telefoneDestino = inputTel.replace(/[^0-9]/g, '');
             } else {
-                alert("❌ Número de telefone inválido ou cancelado.");
+                // Se a flag estava ativa (segunda tentativa), reseta ela e prossegue
+                bypassDuplicateCheck = false; 
+            }
+            // =======================================================
+
+
+            const mesasSelecionadas = Array.from(selecionadas);
+
+            if (mesasSelecionadas.length === 0) {
+                alert("Você precisa selecionar pelo menos uma mesa.");
                 return;
             }
-        }
-        
-        // Envia APENAS a mensagem de texto
-        window.open(`https://wa.me/55${telefoneDestino}?text=${mensagemFinal}`, '_blank');
-    };
+
+            const jaReservadas = mesasSelecionadas.filter(m => reservas[m]);
+            if (jaReservadas.length > 0) {
+                alert("Mesas já reservadas: " + jaReservadas.join(", "));
+                return;
+            }
+
+            const agora = new Date();
+            
+            const valorMesas = mesasSelecionadas.length * VALOR_MESA;
+            const valorCadeiras = cadeirasExtras * VALOR_CADEIRA;
+            const valorTotal = valorMesas + valorCadeiras; 
+            
+            const dataFormatada = agora.toLocaleDateString('pt-BR');
+            const horarioFormatado = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
 
-    // FUNÇÕES DO MODAL DE EDIÇÃO 
-    window.abrirModalEdicao = function(mesaPrincipalId) {
-        const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reserva) {
-            alert('❌ Reserva não encontrada para edição.');
-            return;
-        }
+            for (const mesa of mesasSelecionadas) {
+                await set(ref(db, `reservas/${mesa}`), {
+                    aluno,
+                    turma,
+                    nome,
+                    telefone,
+                    cadeirasExtras, 
+                    valorTotal,
+                    mesasSelecionadas,
+                    horario: horarioFormatado,
+                    data: dataFormatada,
+                    status: 'pendente' 
+                });
+            }
 
-        document.getElementById('editMesaPrincipalId').value = mesaPrincipalId;
-        document.getElementById('editMesas').textContent = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-        
-        document.getElementById('editNome').value = reserva.nome || '';
-        document.getElementById('editTelefone').value = reserva.telefone || '';
-        document.getElementById('editAluno').value = reserva.aluno || '';
-        document.getElementById('editTurma').value = reserva.turma || '';
-        
-        const formaPagamentoSalva = reserva.formaPagamento || 'Pix';
+            mostrarModalPix(valorTotal, aluno, turma, nome, mesasSelecionadas, telefone, cadeirasExtras); 
 
-        if (FIXED_PAYMENT_OPTIONS.includes(formaPagamentoSalva)) {
-            formaPagamentoSelect.value = formaPagamentoSalva;
-            outrosDetalheInput.value = '';
-        } else {
-            formaPagamentoSelect.value = 'Outros';
-            outrosDetalheInput.value = formaPagamentoSalva;
-        }
-        
-        toggleOutrosField(); 
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    window.fecharModalEdicao = function() {
-        document.getElementById('editModal').style.display = 'none';
-    }
-
-    window.salvarEdicao = async function() {
-        const mesaPrincipalId = document.getElementById('editMesaPrincipalId').value;
-        const novoNome = document.getElementById('editNome').value;
-        const novoTelefone = document.getElementById('editTelefone').value.replace(/[^0-9]/g, ''); // Garante que só há números
-        const novoAluno = document.getElementById('editAluno').value;
-        const novaTurma = document.getElementById('editTurma').value;
-        
-        let novaFormaPagamento = formaPagamentoSelect.value;
-        
-        if (novaFormaPagamento === 'Outros') {
-            novaFormaPagamento = outrosDetalheInput.value || 'Outros (não especificado)';
-        }
-
-        const reservaOriginal = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        if (!reservaOriginal) return alert('❌ Erro interno: Reserva não encontrada.');
-
-        const mesasIds = reservaOriginal.mesas;
-        const updates = {};
-        
-        mesasIds.forEach(mesaId => {
-            updates[`/reservas/${mesaId}/nome`] = novoNome;
-            updates[`/reservas/${mesaId}/telefone`] = novoTelefone;
-            updates[`/reservas/${mesaId}/aluno`] = novoAluno;
-            updates[`/reservas/${mesaId}/turma`] = novaTurma;
-            updates[`/reservas/${mesaId}/formaPagamento`] = novaFormaPagamento;
+            selecionadas.clear();
+            form.reset();
+            atualizarTotal();
         });
 
-        try {
-            await update(ref(db), updates);
-            alert(`✅ Reserva das mesas ${mesasIds.join(', ')} editada com sucesso!`);
-            fecharModalEdicao();
-        } catch (error) {
-            alert(`❌ Erro ao salvar edição: ${error.message}`);
-            console.error("Erro no Firebase:", error);
-        }
-    }
-    
-    // ====================================================
-    // 4. FUNÇÃO DE EXPORTAÇÃO (PDF)
-    // ====================================================
-
-    window.exportarPDF = function() {
-        const { jsPDF } = window.jspdf;
-        // @ts-ignore
-        const doc = new jsPDF('landscape');
-
-        const tabela = document.getElementById('reservasTable');
-        const linhasVisiveis = Array.from(tabela.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
-        
-        if (linhasVisiveis.length === 0) {
-            alert("Não há dados visíveis para exportar.");
-            return;
+        // Função para exibir/ocultar o formulário de cancelamento
+        window.toggleCancelamentoForm = function() {
+            if (formCancelamento.style.display === 'none' || formCancelamento.style.display === '') {
+                formCancelamento.style.display = 'block';
+                // Rola a página para o formulário
+                formCancelamento.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+            } else {
+                formCancelamento.style.display = 'none';
+            }
         }
 
-        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim());
-        cabecalhos.pop(); // Remove Ação
-        cabecalhos.pop(); // Remove Status
+        // Listener para o formulário de cancelamento
+        formCancelamento.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const mesaInput = document.getElementById("cancelMesa").value.padStart(2, '0');
+            const telefoneInput = document.getElementById("cancelTelefone").value.replace(/[^0-9]/g, '');
+            const nomeInput = document.getElementById("cancelamentoNome").value; 
 
-        const dados = linhasVisiveis.map(row => {
-            const cells = Array.from(row.querySelectorAll('td'));
-            return cells.slice(0, -2).map((cell, index) => {
-                // A coluna Telefone (index 2) precisa do texto sem o link do WhatsApp
-                if (index === 2) { 
-                    const text = cell.firstChild ? cell.firstChild.textContent.trim() : cell.textContent.trim();
-                    return text.replace('N/A', '').trim();
+            if (!reservas[mesaInput]) {
+                alert(`❌ Erro: A Mesa ${mesaInput} não está registrada como reservada.`);
+                return;
+            }
+
+            const reservaBase = reservas[mesaInput];
+            
+            // Coleta o grupo de mesas
+            const mesasParaCancelar = reservaBase.mesasSelecionadas; 
+
+            if (!mesasParaCancelar || mesasParaCancelar.length === 0) {
+                alert('❌ Erro interno: Não foi possível identificar o grupo de mesas.');
+                return;
+            }
+
+            const confirmacao = confirm(`Tem certeza que deseja solicitar o cancelamento da reserva das Mesas ${mesasParaCancelar.join(', ')}? Esta ação será enviada para aprovação da secretaria.`);
+
+            if (!confirmacao) return;
+
+            try {
+                const updates = {};
+                // Atualiza o status para todas as mesas do grupo
+                mesasParaCancelar.forEach(mesa => {
+                    updates[`/reservas/${mesa}/status`] = 'cancelamento-solicitado';
+                    updates[`/reservas/${mesa}/solicitacaoCancelamento`] = new Date().toLocaleString('pt-BR');
+                    // CAMPOS DE IDENTIDADE: ESSENCIAIS para passar na regra de segurança do Firebase
+                    updates[`/reservas/${mesa}/nome`] = nomeInput; 
+                    updates[`/reservas/${mesa}/telefone`] = telefoneInput; 
+                });
+                
+                await update(ref(db), updates);
+
+                alert(`✅ Solicitação de cancelamento registrada com sucesso para as Mesas ${mesasParaCancelar.join(', ')}.\n\nAguarde a aprovação e contato da secretaria para o estorno, se houver.`);
+                formCancelamento.reset();
+                formCancelamento.style.display = 'none';
+                
+                // Notificação (para o ADM)
+                enviarNotificacaoAdminCancelamento(reservaBase, mesasParaCancelar);
+
+            } catch (error) {
+                // Captura o erro do Firebase caso a regra de segurança não seja satisfeita (Nome/Telefone Incorretos)
+                if (error.message.includes('permission_denied')) {
+                    alert("❌ Erro de Permissão: O nome e/ou telefone fornecidos não correspondem à reserva da Mesa " + mesaInput + ". Verifique se digitou os dados cadastrados.");
+                } else {
+                        alert(`❌ Erro ao solicitar cancelamento: ${error.message}`);
                 }
-                return cell.textContent.trim();
-            }); 
+                console.error("Firebase Error:", error);
+            }
         });
 
-        doc.setFontSize(16);
-        doc.setTextColor(50, 50, 50); 
-        doc.text("Relatório de Reservas - Festa da Família", 140, 15, { align: "center" });
-        doc.setFontSize(10);
-        doc.text(`Reservas no Relatório: ${linhasVisiveis.length} transações`, 140, 22, { align: "center" });
+        // Função para enviar uma notificação ao administrador via WhatsApp
+        function enviarNotificacaoAdminCancelamento(reserva, mesas) {
+            const mensagem = `
+ALERTA: SOLICITAÇÃO DE CANCELAMENTO 🚨
+---
+Responsável: ${reserva.nome}
+Telefone: ${reserva.telefone}
+Aluno/Turma: ${reserva.aluno} (${reserva.turma})
+Mesas: ${mesas.join(', ')}
+Status Atual: ${reserva.status.toUpperCase()}
+AÇÃO NECESSÁRIA: Verifique o painel de gestão para aprovar/rejeitar e processar o estorno.
+            `.trim().replace(/\n/g, '%0A');
 
-        doc.autoTable({
-            startY: 30,
-            head: [cabecalhos],
-            body: dados,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-            headStyles: { fillColor: [0, 123, 255], textColor: 255 } 
-        });
+            const numeroFinanceiro = '5571999183320'; // Número do ADM/Financeiro
+            window.open(`https://wa.me/${numeroFinanceiro}?text=${mensagem}`, '_blank');
+        }
+        
+        // FUNÇÃO PARA COPIAR PIX
+        window.copiarPix = function() {
+            const input = document.getElementById("chavePixInput");
+            const btn = document.getElementById("btnCopiarPix");
 
-        doc.save(`Reservas_Tracos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);
-    }
+            input.select();
+            input.setSelectionRange(0, 99999); 
 
-  </script>
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(input.value)
+                        .then(() => {
+                            btn.textContent = '✅ Copiado!';
+                            setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000);
+                        })
+                        .catch(err => {
+                            document.execCommand("copy");
+                            btn.textContent = '✅ Copiado!';
+                            setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000);
+                        });
+                } else {
+                    document.execCommand("copy");
+                    btn.textContent = '✅ Copiado!';
+                    setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000);
+                }
+            } catch (err) {
+                alert('Não foi possível copiar a chave Pix automaticamente. Por favor, copie manualmente: ' + input.value);
+                console.error('Falha ao copiar: ', err);
+            }
+        }
+
+        let mensagemWhatsApp = "";
+        
+        // FUNÇÃO mostrarModalPix 
+        window.mostrarModalPix = function(valor, aluno, turma, nome, mesasSelecionadas, telefone, cadeirasExtras) {
+            document.getElementById("pixValor").innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
+            
+            const detalheCadeiras = cadeirasExtras > 0 ? ` (+ ${cadeirasExtras} Cadeira(s) Extra(s))` : '';
+            
+            mensagemWhatsApp = `NOVA RESERVA PIX (Festa da Família)%0A%0AAluno: ${aluno}%0ATurma: ${turma}%0AResponsável: ${nome}%0ATelefone: ${telefone}%0AMesas: ${mesasSelecionadas.join(", ")} ${detalheCadeiras}%0AValor Total: R$ ${valor.toFixed(2).replace('.', ',')}%0A%0ACHAVE PIX CNPJ: 45.701.401/0001-07%0ANome: Cora (Colégio Antoni Gaudi)%0A%0A⚠️ ATENÇÃO: Pagamento deve ser feito no mesmo dia da reserva para garantir as mesas, ou a reserva será liberada.`;
+
+            document.getElementById("pixModal").style.display = "flex";
+        }
+
+        window.fecharModal = function() {
+            document.getElementById("pixModal").style.display = "none";
+        }
+
+        window.enviarWhatsapp = function() {
+            // Abre no WhatsApp para o número de destino do ADM (71999183320)
+            window.open(`https://wa.me/5571999183320?text=${mensagemWhatsApp}`, '_blank');
+        };
+        
+        atualizarTotal();
+        
+    </script>
 </body>
 </html>
