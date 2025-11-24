@@ -252,10 +252,10 @@
       border: 1px solid var(--border-color);
     }
     #reservasTable th, #reservasTable td {
-      padding: 12px 15px;
+      padding: 12px 10px; /* Padding reduzido para mais colunas */
       text-align: left;
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.9rem;
+      font-size: 0.85rem; /* Fonte ligeiramente menor */
     }
     #reservasTable th {
       background-color: var(--header-color);
@@ -265,7 +265,7 @@
       cursor: pointer;
       position: relative;
       letter-spacing: 0.5px;
-      white-space: nowrap; /* Evita quebra de linha nos cabeçalhos */
+      white-space: nowrap; 
     }
     #reservasTable th:hover {
       background-color: #e9e9e9;
@@ -277,6 +277,33 @@
     .sort-asc::after { color: var(--accent-color); content: ' ▲'; font-size: 0.8em; }
     .sort-desc::after { color: var(--accent-color); content: ' ▼'; font-size: 0.8em; }
     
+    /* NOVO: DESTAQUE PARA MESAS */
+    .mesa-highlight {
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        background-color: #e3f2fd; /* Azul muito claro */
+        color: var(--accent-color); /* Azul principal */
+        border-radius: 4px;
+        padding: 5px 8px !important;
+        text-align: center !important;
+        display: inline-block; /* Garante que o span se comporte como um bloco para o padding */
+        min-width: 30px; /* Garante que todos os números de mesas tenham um tamanho mínimo */
+    }
+    
+    /* NOVO: DESTAQUE PARA CADEIRAS EXTRAS */
+    .cadeiras-highlight {
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        background-color: #fff3e0; /* Amarelo muito claro */
+        color: #e67e22; /* Laranja forte */
+        border-radius: 4px;
+        padding: 5px 8px !important;
+        text-align: center !important;
+        display: inline-block; /* Garante que o span se comporte como um bloco para o padding */
+        min-width: 30px;
+    }
+
+
     /* ESTILO DO BOTÃO DE LEMBRETE PIX */
     .pix-reminder-button { 
         background-color: #f39c12; 
@@ -286,9 +313,9 @@
         padding: 4px 8px; 
         border-radius: 4px; 
         font-weight: bold; 
-        font-size: 0.8rem; 
+        font-size: 0.75rem; /* Ajustado */
         display: inline-block;
-        white-space: nowrap; /* Impede a quebra de linha */
+        white-space: nowrap; 
     }
     .pix-reminder-button:hover {
         background-color: #e67e22;
@@ -297,10 +324,10 @@
 
     .status-badge {
         display: inline-block;
-        padding: 5px 10px;
+        padding: 5px 8px; /* Ajustado */
         border-radius: 4px;
         font-weight: bold;
-        font-size: 0.8rem;
+        font-size: 0.75rem; /* Ajustado */
     }
     /* Status PENDENTE agora é VERMELHO */
     .status-pendente {
@@ -315,13 +342,13 @@
     
     /* NOVO ESTILO PARA CANCELAMENTO SOLICITADO */
     .status-cancelamento {
-        background-color: #ffc107; /* Amarelo/Laranja de Alerta */
+        background-color: #ffc107; 
         color: #333;
         border: 1px solid #e0a800;
     }
     
-    /* ESTILO PARA ALINHAR BOTÕES NA COLUNA AÇÃO (Versão Desktop) */
-    #reservasTable td:nth-child(9) { 
+    /* ESTILO PARA ALINHAR BOTÕES NA COLUNA AÇÃO (Versão Desktop) - AGORA É A 10ª COLUNA */
+    #reservasTable td:nth-child(10) { 
         display: flex;
         flex-direction: column;
         gap: 5px;
@@ -338,7 +365,7 @@
         border-radius: 4px;
         cursor: pointer;
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.8rem; /* Ajustado */
         transition: background-color 0.2s;
         margin: 2px 0;
         display: block; 
@@ -480,11 +507,11 @@
         
         /* 3. Transforma a célula da tabela (<td>) em um bloco para empilhamento vertical */
         #reservasTable td {
-            display: flex; /* Para alinhar o label com o valor */
+            display: flex; 
             justify-content: space-between;
             text-align: right;
-            border: none; /* Remove a borda padrão */
-            padding: 8px 0; /* Padding vertical */
+            border: none; 
+            padding: 8px 0; 
             font-size: 0.95rem;
         }
         
@@ -493,15 +520,38 @@
             content: attr(data-label);
             font-weight: bold;
             text-transform: uppercase;
-            color: #555; /* Cor para o label */
+            color: #555; 
             padding-right: 10px;
             text-align: left;
-            flex-shrink: 0; /* Impede que o label encolha */
+            flex-shrink: 0; 
         }
         
+        /* NOVO: Ajuste na célula de mesas no mobile (para o destaque) */
+        #reservasTable td:nth-child(1) { /* Coluna Mesa(s) */
+            background-color: #e3f2fd; 
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 10px 10px;
+        }
+
+        /* NOVO: Ajuste na célula de cadeiras no mobile (para o destaque) */
+        #reservasTable td:nth-child(7) { /* Coluna Cadeiras Extras */
+            background-color: #fff3e0;
+            padding: 10px 10px;
+        }
+        
+        /* NOVO: Ajuste para garantir que o texto destaque no mobile */
+        #reservasTable td:nth-child(1) .mesa-highlight,
+        #reservasTable td:nth-child(7) .cadeiras-highlight {
+            background: none !important; /* Remove o fundo extra no span, usa o fundo do TD */
+            color: var(--accent-color);
+            font-size: 1.1rem !important;
+        }
+
+
         /* 5. Telefone: Ajuste a coluna de telefone para alinhar o número e o botão PIX */
         #reservasTable td:nth-child(3) {
-            flex-direction: column; /* Telefone e botão PIX ficam um abaixo do outro */
+            flex-direction: column; 
             align-items: flex-start;
             text-align: left;
         }
@@ -512,8 +562,8 @@
             margin-top: 5px;
         }
         
-        /* 6. Ação: Ajuste a coluna de ação para alinhar à esquerda e ocupar o espaço total */
-        #reservasTable td:nth-child(9) { 
+        /* 6. Ação: Ajuste a coluna de ação (agora 10ª) para alinhar à esquerda e ocupar o espaço total */
+        #reservasTable td:nth-child(10) { 
             flex-direction: column;
             align-items: flex-start;
             padding-top: 10px;
@@ -522,14 +572,19 @@
             margin-top: 5px;
             text-align: left; 
         }
-        #reservasTable td:nth-child(9)::before {
-            display: none; /* Não exibe o label "Ação" */
+        #reservasTable td:nth-child(10)::before {
+            display: none; 
         }
         .action-button {
             font-size: 0.8rem;
             padding: 8px 10px;
             width: 100%;
         }
+        /* Ajuste na coluna de status para alinhamento */
+        #reservasTable td:nth-child(9) { /* Coluna Status, agora 9ª */
+            text-align: right;
+        }
+
 
         /* Login screen compacta */
         .login-container {
@@ -582,7 +637,8 @@
                     <th data-column-index="3" class="sortable">Aluno / Turma</th>
                     <th data-column-index="4" class="sortable">Valor (R$)</th>
                     <th data-column-index="5" class="sortable">Pagamento</th> 
-                    <th data-column-index="6" class="sortable sort-desc">Data/Hora</th> 
+                    <th data-column-index="6" class="sortable">Cadeiras Extras</th> 
+                    <th data-column-index="7" class="sortable sort-desc">Data/Hora</th> 
                     <th>Status</th>
                     <th>Ação</th>
                     </tr>
@@ -611,6 +667,9 @@
             
             <label for="editTurma">Turma:</label>
             <input type="text" id="editTurma">
+
+            <label for="editCadeirasExtras">Cadeiras Extras:</label>
+            <input type="number" id="editCadeirasExtras" min="0" value="0"> 
             
             <label for="editFormaPagamento">Forma de Pagamento:</label>
             <select id="editFormaPagamento" onchange="toggleOutrosField()">
@@ -664,7 +723,7 @@
     const profileImg = document.getElementById('profile-img');
     
     let dadosAgrupados = [];
-    let sortColumn = 6; 
+    let sortColumn = 7; // Agora é a coluna Data/Hora
     let sortDirection = 'desc';
     
     const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
@@ -672,7 +731,8 @@
     // Array de labels (usado no mobile view)
     const tableLabels = [
         'MESA(S)', 'RESPONSÁVEL', 'TELEFONE', 'ALUNO / TURMA', 
-        'VALOR (R$)', 'PAGAMENTO', 'DATA/HORA', 'STATUS', 'AÇÃO'
+        'VALOR (R$)', 'PAGAMENTO', 'CADEIRAS EXTRAS', 'DATA/HORA', // NOVO: Cadeiras Extras
+        'STATUS', 'AÇÃO'
     ];
 
 
@@ -800,18 +860,21 @@
                 
                 const formaPagamento = reserva.formaPagamento || 'Pix';
                 const telefone = reserva.telefone || 'semtel'; // Telefone é importante para o Agrupamento e WhatsApp
+                const cadeirasExtras = reserva.cadeirasExtras || 0; // Cadeiras Extras
 
-                // 🚨 CORREÇÃO PRINCIPAL: Adiciona mesasSelecionadas (array das mesas no pedido) na chave 🚨
+                // CORREÇÃO PRINCIPAL: Adiciona mesasSelecionadas (array das mesas no pedido) na chave 
                 const mesasLista = reserva.mesasSelecionadas ? reserva.mesasSelecionadas.sort().join('|') : 'semmesas';
-                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${reserva.valorTotal}-${telefone}-${formaPagamento}-${mesasLista}`;
-                // 🚨 FIM DA CORREÇÃO PRINCIPAL 🚨
+                // Chave de Agrupamento ajustada para incluir cadeirasExtras
+                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${reserva.valorTotal}-${telefone}-${formaPagamento}-${mesasLista}-${cadeirasExtras}`;
+                // FIM DA CORREÇÃO PRINCIPAL 
                 
                 if (!reservasMap.has(chaveReserva)) {
                     reservasMap.set(chaveReserva, {
                         ...reserva,
                         formaPagamento: formaPagamento, 
                         telefone: telefone === 'semtel' ? null : telefone,
-                        mesas: [mesaId]
+                        mesas: [mesaId],
+                        cadeirasExtras: cadeirasExtras // Mantém cadeirasExtras
                     });
                 } else {
                     reservasMap.get(chaveReserva).mesas.push(mesaId);
@@ -861,7 +924,9 @@
             h.classList.remove('sort-asc', 'sort-desc');
         });
 
-        headers[index].classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        const headerIndex = index >= 7 ? index - 1 : index; // Ajuste no índice devido à nova coluna
+
+        headers[headerIndex].classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
 
         dadosAgrupados.sort((a, b) => {
             let aVal, bVal;
@@ -869,19 +934,20 @@
             switch (index) {
                 case 0: aVal = parseInt(a.mesas[0]); bVal = parseInt(b.mesas[0]); break; 
                 case 1: aVal = a.nome; bVal = b.nome; break; 
-                case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; // Telefone
+                case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; 
                 case 3: aVal = a.aluno; bVal = b.aluno; break; 
                 case 4: aVal = a.valorTotal; bVal = b.valorTotal; break; 
                 case 5: aVal = a.formaPagamento || 'Pix'; bVal = b.formaPagamento || 'Pix'; break; 
-                case 6: 
+                case 6: aVal = parseInt(a.cadeirasExtras || 0); bVal = parseInt(b.cadeirasExtras || 0); break; // Cadeiras Extras
+                case 7: 
                 default:
-                    // Ordenação por Data/Hora (coluna 6)
+                    // Ordenação por Data/Hora (coluna 7 - NOVO ÍNDICE)
                     const aDate = new Date(`${a.data.split('/').reverse().join('-')}T${a.horario}:00`);
                     const bDate = new Date(`${b.data.split('/').reverse().join('-')}T${b.horario}:00`);
                     return direction === 'asc' ? aDate - bDate : bDate - aDate;
             }
 
-            if (index === 6) return 0; // Se for data, já foi ordenada acima.
+            if (index === 7) return 0; // Se for data, já foi ordenada acima.
 
             if (typeof aVal === 'number') {
                 return direction === 'asc' ? aVal - bVal : bVal - aVal;
@@ -918,13 +984,13 @@ Agradecemos e aguardamos a sua confirmação!
         return mensagem;
     }
 
-    // 🚨 FUNÇÃO MODIFICADA PARA ADICIONAR data-label E NOVO STATUS 🚨
+    // FUNÇÃO MODIFICADA PARA ADICIONAR data-label E DESTAQUE
     function renderizarTabela(reservas) {
         tbody.innerHTML = '';
         let totalMesas = 0; 
         
         // Array de labels
-        const labels = tableLabels; // Usa a constante definida acima
+        const labels = tableLabels; 
 
         reservas.forEach(reserva => {
             const row = tbody.insertRow();
@@ -932,9 +998,10 @@ Agradecemos e aguardamos a sua confirmação!
             const numMesas = reserva.mesas.length;
             totalMesas += numMesas;
 
-            // 0. Mesa(s)
+            // 0. Mesa(s) (COM DESTAQUE)
             const mesasCell = row.insertCell();
-            mesasCell.textContent = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', '); 
+            const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
+            mesasCell.innerHTML = `<span class="mesa-highlight">${mesasTexto}</span>`; // Adiciona a classe de destaque
             mesasCell.setAttribute('data-label', labels[0]);
 
             // 1. Responsável
@@ -970,35 +1037,40 @@ Agradecemos e aguardamos a sua confirmação!
             const formaPagamento = reserva.formaPagamento || 'Pix';
             pagamentoCell.textContent = formaPagamento; 
             pagamentoCell.setAttribute('data-label', labels[5]);
+
+            // 6. Cadeiras Extras (COM DESTAQUE)
+            const cadeirasCell = row.insertCell();
+            const cadeirasTexto = reserva.cadeirasExtras || '0';
+            cadeirasCell.innerHTML = `<span class="cadeiras-highlight">${cadeirasTexto}</span>`; // Adiciona a classe de destaque
+            cadeirasCell.setAttribute('data-label', labels[6]);
             
-            // 6. Data/Hora
+            // 7. Data/Hora (Índice ajustado)
             const dataHoraCell = row.insertCell();
             dataHoraCell.textContent = `${reserva.data} ${reserva.horario}`; 
-            dataHoraCell.setAttribute('data-label', labels[6]);
+            dataHoraCell.setAttribute('data-label', labels[7]);
             
-            // 7. Status
+            // 8. Status (Índice ajustado)
             const statusCell = row.insertCell();
-            statusCell.setAttribute('data-label', labels[7]);
+            statusCell.setAttribute('data-label', labels[8]);
             const status = reserva.status || 'pendente';
             
             // NOVO BLOCO: Lógica para determinar a classe e o texto do status
-            let statusClass = 'status-pendente'; // Padrão: Pendente
-            let statusText = 'PENDENTE (PIX)';   // Padrão: Pendente
+            let statusClass = 'status-pendente'; 
+            let statusText = 'PENDENTE (PIX)';   
 
             if (status === 'paga') {
                 statusClass = 'status-confirmado';
                 statusText = 'PAGA (CONFIRMADO)';
             } else if (status === 'cancelamento-solicitado') {
-                // AGORA TRATA O STATUS DE CANCELAMENTO
                 statusClass = 'status-cancelamento';
                 statusText = 'CANCELAMENTO SOLICITADO';
             }
 
             statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
 
-            // 8. Ação
+            // 9. Ação (Índice ajustado)
             const actionCell = row.insertCell();
-            actionCell.setAttribute('data-label', labels[8]); 
+            actionCell.setAttribute('data-label', labels[9]); 
             const mesaPrincipal = reserva.mesas[0];
             
             let actionHTML = '';
@@ -1010,7 +1082,7 @@ Agradecemos e aguardamos a sua confirmação!
             actionHTML += `<button class="action-button edit-button" onclick="abrirModalEdicao('${mesaPrincipal}')">✏️ Editar</button>`;
 
             // 3. CONFIRMAR PAGAMENTO
-            if (status === 'pendente' || status === 'cancelamento-solicitado') { // Permite confirmar mesmo se foi solicitado cancelamento
+            if (status === 'pendente' || status === 'cancelamento-solicitado') { 
                 actionHTML += `<button class="action-button confirm-button" onclick="confirmarPagamento('${mesaPrincipal}')">✅ Confirmar</button>`;
             } 
             
@@ -1142,10 +1214,11 @@ Agradecemos e aguardamos a sua confirmação!
         }
         
         // VALORES FIXOS (Ajuste se necessário)
-        const localEvento = "Quadra do If Baiano - Campus Catu";
-        const dataEvento = "06 de Dezembro, 19:00h";
+        const localEvento = "Auditório Principal - Colégio Antoni Gaudi";
+        const dataEvento = "15 de Dezembro, 19:00h";
         
         const mesasTexto = reserva.mesas.join(', ');
+        const cadeirasTexto = reserva.cadeirasExtras > 0 ? ` + ${reserva.cadeirasExtras} Cadeira(s) Extra(s)` : '';
 
         const mensagemFinal = `
 *PRESENÇA CONFIRMADA!* *FESTA DA FAMÍLIA*
@@ -1157,14 +1230,14 @@ Obrigado por confirmar sua reserva. Sua presença e a de seus convidados estão 
 *Detalhes da Sua Reserva:*
 *Responsável:* ${reserva.nome}
 *Aluno:* ${reserva.aluno} (${reserva.turma})
-*Mesa(s) Reservada(s):* ${mesasTexto}
+*Mesa(s) Reservada(s):* ${mesasTexto}${cadeirasTexto}
 *Status:* PAGAMENTO CONFIRMADO
 
 *Detalhes do Evento:*
 *Local:* ${localEvento}
 *Data/Hora:* ${dataEvento}
 
-Esperamos por vocês!
+Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedência.
         `.trim().replace(/\n/g, '%0A');
 
         let telefoneDestino = reserva.telefone;
@@ -1201,6 +1274,7 @@ Esperamos por vocês!
         document.getElementById('editTelefone').value = reserva.telefone || '';
         document.getElementById('editAluno').value = reserva.aluno || '';
         document.getElementById('editTurma').value = reserva.turma || '';
+        document.getElementById('editCadeirasExtras').value = reserva.cadeirasExtras || 0; 
         
         const formaPagamentoSalva = reserva.formaPagamento || 'Pix';
 
@@ -1223,9 +1297,10 @@ Esperamos por vocês!
     window.salvarEdicao = async function() {
         const mesaPrincipalId = document.getElementById('editMesaPrincipalId').value;
         const novoNome = document.getElementById('editNome').value;
-        const novoTelefone = document.getElementById('editTelefone').value.replace(/[^0-9]/g, ''); // Garante que só há números
+        const novoTelefone = document.getElementById('editTelefone').value.replace(/[^0-9]/g, ''); 
         const novoAluno = document.getElementById('editAluno').value;
         const novaTurma = document.getElementById('editTurma').value;
+        const novasCadeirasExtras = parseInt(document.getElementById('editCadeirasExtras').value) || 0; 
         
         let novaFormaPagamento = formaPagamentoSelect.value;
         
@@ -1245,6 +1320,7 @@ Esperamos por vocês!
             updates[`/reservas/${mesaId}/aluno`] = novoAluno;
             updates[`/reservas/${mesaId}/turma`] = novaTurma;
             updates[`/reservas/${mesaId}/formaPagamento`] = novaFormaPagamento;
+            updates[`/reservas/${mesaId}/cadeirasExtras`] = novasCadeirasExtras; 
         });
 
         try {
@@ -1273,14 +1349,14 @@ Esperamos por vocês!
             alert("Não há dados visíveis para exportar.");
             return;
         }
-
-        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim());
-        cabecalhos.pop(); // Remove Ação
-        cabecalhos.pop(); // Remove Status
+        
+        // Colunas a serem exportadas: Mesa, Responsável, Telefone, Aluno/Turma, Valor, Pagamento, Cadeiras Extras, Data/Hora
+        // Pega 8 colunas (Mesa(s) até Data/Hora)
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim()).slice(0, 8); 
 
         const dados = linhasVisiveis.map(row => {
             const cells = Array.from(row.querySelectorAll('td'));
-            return cells.slice(0, -2).map((cell, index) => {
+            return cells.slice(0, 8).map((cell, index) => { // Pega 8 células
                 // A coluna Telefone (index 2) precisa do texto sem o link do WhatsApp
                 if (index === 2) { 
                     const text = cell.firstChild ? cell.firstChild.textContent.trim() : cell.textContent.trim();
@@ -1311,5 +1387,3 @@ Esperamos por vocês!
   </script>
 </body>
 </html>
-
-
