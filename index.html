@@ -195,7 +195,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 25px;
-        gap: 20px;
+        gap: 10px; /* Reduzido o gap para 3 botões */
     }
     .search-area {
         position: relative;
@@ -234,6 +234,7 @@
         font-size: 0.9rem;
         font-weight: 500;
         transition: background-color 0.2s, transform 0.1s;
+        white-space: nowrap; /* Impede quebras de linha em botões na área de trabalho */
     }
     .pdf-button:hover {
         background-color: #c82333;
@@ -403,6 +404,11 @@
         color: var(--confirmed-color); 
         font-weight: 700; 
     }
+    /* Destaque para o texto de Cadeiras Extras */
+    .total-reservas #totalCadeirasExtras { 
+        color: #e67e22; /* Laranja forte */ 
+        font-weight: 700; 
+    }
     
     .loading-text {
         color: #666;
@@ -484,10 +490,7 @@
             flex-direction: column;
             gap: 10px;
         }
-        .search-area {
-            width: 100%;
-        }
-        .pdf-button {
+        .search-area, .pdf-button {
             width: 100%;
         }
         .total-reservas {
@@ -630,14 +633,16 @@
                     <span class="search-icon">🔍</span>
                     <input type="text" id="search-input" placeholder="Buscar por Aluno, Turma, Mesa..." onkeyup="filtrarTabela()">
                 </div>
+                <button id="filter-extra-chairs-button" class="pdf-button" style="background-color: #e67e22;" onclick="toggleFiltrarCadeirasExtras()">🪑 Filtrar Cadeiras Extras</button>
                 <button class="pdf-button" onclick="exportarPDF()">⬇️ Baixar Relatório (PDF)</button>
             </div>
 
             <div class="total-reservas">
                 <div style="margin-bottom: 5px;">
                     Total de Mesas no Painel: <span id="totalReservas">0</span> | 
-                    <span style="color: var(--confirmed-color);">Mesas PAGAS: </span><span id="totalMesasPagas" style="font-weight: 700; color: var(--confirmed-color);">0</span>
-                </div>
+                    <span style="color: var(--confirmed-color);">Mesas PAGAS: </span><span id="totalMesasPagas" style="font-weight: 700; color: var(--confirmed-color);">0</span> |
+                    <span style="color: #e67e22;">Cadeiras Extras: </span><span id="totalCadeirasExtras" style="font-weight: 700; color: #e67e22;">0</span>
+                    </div>
                 <hr style="border: 0; border-top: 1px solid #b2ebf2; margin: 5px 0;">
                 <div style="font-size: 1.3rem;">
                     Valor Total GERAL: <span id="valorTotalGeral" style="font-weight: 700;">R$ 0,00</span> | 
@@ -737,9 +742,14 @@
     const totalReservasSpan = document.getElementById('totalReservas');
     const totalMesasPagasSpan = document.getElementById('totalMesasPagas');
     
-    // NOVO: SPANS DE VALOR TOTAL
+    // SPANS DE VALOR TOTAL
     const valorTotalGeralSpan = document.getElementById('valorTotalGeral');
     const valorTotalArrecadadoSpan = document.getElementById('valorTotalArrecadado');
+    
+    // NOVO SPAN E BOTÃO PARA CADEIRAS EXTRAS
+    const totalCadeirasExtrasSpan = document.getElementById('totalCadeirasExtras');
+    const filterButton = document.getElementById('filter-extra-chairs-button');
+    // FIM NOVOS ELEMENTOS
     
     const searchInput = document.getElementById('search-input');
     const headers = document.querySelectorAll('#reservasTable th.sortable');
@@ -752,6 +762,9 @@
     let dadosAgrupados = [];
     let sortColumn = 7; 
     let sortDirection = 'desc';
+    
+    // NOVO: VARIÁVEL DE ESTADO DO FILTRO
+    let isFiltrandoCadeirasExtras = false; 
     
     const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
     
@@ -887,7 +900,8 @@
                 
                 const formaPagamento = reserva.formaPagamento || 'Pix';
                 const telefone = reserva.telefone || 'semtel'; 
-                const cadeirasExtras = reserva.cadeirasExtras || 0; 
+                // Garantir que cadeirasExtras seja um número
+                const cadeirasExtras = parseInt(reserva.cadeirasExtras) || 0; 
                 
                 // Garantir que valorTotal seja um número, com fallback se necessário
                 const valorTotal = typeof reserva.valorTotal === 'number' ? reserva.valorTotal : parseFloat(reserva.valorTotal) || 0;
@@ -904,7 +918,7 @@
                         formaPagamento: formaPagamento, 
                         telefone: telefone === 'semtel' ? null : telefone,
                         mesas: [mesaId],
-                        cadeirasExtras: cadeirasExtras 
+                        cadeirasExtras: cadeirasExtras // Usa o valor numérico
                     });
                 } else {
                     reservasMap.get(chaveReserva).mesas.push(mesaId);
@@ -929,34 +943,51 @@
         }
     }
     
-    // FILTRAR TABELA ATUALIZADA PARA CONTAR MESAS E SOMAR VALORES
+    // FUNÇÃO DE FILTRO DE TABELA ATUALIZADA (com filtro de cadeiras extras)
     window.filtrarTabela = function() {
         const termo = searchInput.value.toLowerCase();
         const linhas = tbody.querySelectorAll('tr');
 
         let mesasVisiveisGeral = 0;
         let mesasVisiveisPagas = 0; 
-        let valorVisivelGeral = 0; // NOVO: Soma o valor total de todas as linhas visíveis
-        let valorVisivelArrecadado = 0; // NOVO: Soma o valor total de linhas visíveis com status 'paga'
+        let valorVisivelGeral = 0; 
+        let valorVisivelArrecadado = 0; 
+        let cadeirasVisiveis = 0; // NOVO: Acumulador de cadeiras extras visíveis
 
         linhas.forEach(row => {
             const textoLinha = row.textContent.toLowerCase();
-            const isVisible = textoLinha.includes(termo);
+            const isVisibleBySearch = textoLinha.includes(termo);
+            
+            // Encontra a reserva correspondente para verificar as cadeiras extras
+            // Isso depende da estrutura do action-button, que é onde a mesaPrincipalId é armazenada.
+            const actionButton = row.querySelector('td:nth-child(10) .action-button');
+            let reserva = null;
+            if (actionButton) {
+                const mesaPrincipalIdMatch = actionButton.onclick.toString().match(/'([^']*)'/);
+                if (mesaPrincipalIdMatch && mesaPrincipalIdMatch[1]) {
+                    const mesaPrincipalId = mesaPrincipalIdMatch[1];
+                    reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
+                }
+            }
+            
+            const cadeirasExtrasReserva = reserva ? (reserva.cadeirasExtras || 0) : 0;
+            
+            // Lógica do filtro de Cadeiras Extras: visível SE (o filtro não estiver ativo OU (o filtro estiver ativo E cadeirasExtras > 0))
+            const isVisibleByExtraChairsFilter = !isFiltrandoCadeirasExtras || (isFiltrandoCadeirasExtras && cadeirasExtrasReserva > 0);
+            
+            const isVisible = isVisibleBySearch && isVisibleByExtraChairsFilter;
+            
             row.style.display = isVisible ? '' : 'none';
             
             if(isVisible) {
-                // Busca o objeto de dados correspondente (precisa ser eficiente)
-                const mesaPrincipalId = row.querySelector('td:nth-child(10) .action-button').onclick.toString().match(/'([^']*)'/)[1];
-                const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-                
                 if (reserva) {
                     const count = reserva.mesas.length;
-                    const valor = reserva.valorTotal || 0; // Usa o valor total da reserva
+                    const valor = reserva.valorTotal || 0; 
 
                     mesasVisiveisGeral += count;
                     valorVisivelGeral += valor;
+                    cadeirasVisiveis += cadeirasExtrasReserva; // Acumula cadeiras extras visíveis
 
-                    // Verifica o status
                     if (reserva.status === 'paga') {
                         mesasVisiveisPagas += count; 
                         valorVisivelArrecadado += valor;
@@ -965,13 +996,31 @@
             }
         });
         
-        // Atualiza os spans de Mesas
+        // Atualiza os spans de Mesas e Valores
         totalReservasSpan.textContent = mesasVisiveisGeral.toString();
         totalMesasPagasSpan.textContent = mesasVisiveisPagas.toString();
+        totalCadeirasExtrasSpan.textContent = cadeirasVisiveis.toString(); // NOVO: Atualiza o total de cadeiras visíveis
         
-        // Atualiza os spans de Valores
         valorTotalGeralSpan.textContent = `R$ ${valorVisivelGeral.toFixed(2).replace('.', ',')}`;
         valorTotalArrecadadoSpan.textContent = `R$ ${valorVisivelArrecadado.toFixed(2).replace('.', ',')}`;
+    }
+
+    // NOVA FUNÇÃO: Alternar o filtro de cadeiras extras
+    window.toggleFiltrarCadeirasExtras = function() {
+        isFiltrandoCadeirasExtras = !isFiltrandoCadeirasExtras; 
+        
+        if (isFiltrandoCadeirasExtras) {
+            filterButton.style.backgroundColor = '#2ecc71'; // Verde para indicar ativo
+            filterButton.textContent = '✅ Cadeiras Extras (Ativo)';
+        } else {
+            filterButton.style.backgroundColor = '#e67e22'; // Laranja original
+            filterButton.textContent = '🪑 Filtrar Cadeiras Extras';
+            // Limpa o campo de busca quando desativa o filtro, se desejar
+            // searchInput.value = ''; 
+        }
+        
+        // Aplica o filtro imediatamente
+        filtrarTabela(); 
     }
 
 
@@ -1040,13 +1089,14 @@ Agradecemos e aguardamos a sua confirmação!
         return mensagem;
     }
 
-    // FUNÇÃO renderizarTabela MODIFICADA PARA SOMAR VALORES
+    // FUNÇÃO renderizarTabela MODIFICADA PARA SOMAR VALORES E CADEIRAS EXTRAS
     function renderizarTabela(reservas) {
         tbody.innerHTML = '';
         let totalMesasGeral = 0; 
         let totalMesasPagas = 0; 
-        let valorTotalGeral = 0; // NOVO: Acumulador de valor total
-        let valorTotalArrecadado = 0; // NOVO: Acumulador de valor pago
+        let valorTotalGeral = 0; 
+        let valorTotalArrecadado = 0; 
+        let totalCadeirasExtras = 0; // NOVO: Acumulador de Cadeiras Extras
         
         const labels = tableLabels; 
 
@@ -1054,16 +1104,18 @@ Agradecemos e aguardamos a sua confirmação!
             const row = tbody.insertRow();
             
             const numMesas = reserva.mesas.length;
-            const valorReserva = reserva.valorTotal || 0; // Garantir que valor exista
+            const valorReserva = reserva.valorTotal || 0; 
+            const cadeirasExtrasReserva = reserva.cadeirasExtras || 0;
 
             totalMesasGeral += numMesas;
             valorTotalGeral += valorReserva;
+            totalCadeirasExtras += cadeirasExtrasReserva; // Acumula o total de cadeiras
 
             const status = reserva.status || 'pendente';
             
             if (status === 'paga') {
                 totalMesasPagas += numMesas; 
-                valorTotalArrecadado += valorReserva; // Adiciona o valor se for pago
+                valorTotalArrecadado += valorReserva; 
             }
 
             // 0. Mesa(s) (COM DESTAQUE)
@@ -1107,7 +1159,7 @@ Agradecemos e aguardamos a sua confirmação!
 
             // 6. Cadeiras Extras (COM DESTAQUE)
             const cadeirasCell = row.insertCell();
-            const cadeirasTexto = reserva.cadeirasExtras || '0';
+            const cadeirasTexto = cadeirasExtrasReserva.toString();
             cadeirasCell.innerHTML = `<span class="cadeiras-highlight">${cadeirasTexto}</span>`; 
             cadeirasCell.setAttribute('data-label', labels[6]);
             
@@ -1154,9 +1206,10 @@ Agradecemos e aguardamos a sua confirmação!
             actionCell.innerHTML = actionHTML;
         });
         
-        // ATUALIZAÇÃO DOS SPANS DE CONTADORES E VALORES
+        // ATUALIZAÇÃO DOS SPANS DE CONTADORES E VALORES GERAIS
         totalReservasSpan.textContent = totalMesasGeral.toString();
         totalMesasPagasSpan.textContent = totalMesasPagas.toString();
+        totalCadeirasExtrasSpan.textContent = totalCadeirasExtras.toString(); // NOVO: Atualiza o total de cadeiras extras
         
         valorTotalGeralSpan.textContent = `R$ ${valorTotalGeral.toFixed(2).replace('.', ',')}`;
         valorTotalArrecadadoSpan.textContent = `R$ ${valorTotalArrecadado.toFixed(2).replace('.', ',')}`;
@@ -1342,7 +1395,12 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
         document.getElementById('editTurma').value = reserva.turma || '';
         document.getElementById('editCadeirasExtras').value = reserva.cadeirasExtras || 0; 
         
-        const formaPagamentoSalva = reserva.formaPagamento || 'Pix';
+        let formaPagamentoSalva = reserva.formaPagamento || 'Pix';
+        
+        // Trata números como string para o select
+        if (typeof formaPagamentoSalva !== 'string') {
+            formaPagamentoSalva = formaPagamentoSalva.toString();
+        }
 
         if (FIXED_PAYMENT_OPTIONS.includes(formaPagamentoSalva)) {
             formaPagamentoSelect.value = formaPagamentoSalva;
@@ -1409,6 +1467,7 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
         const doc = new jsPDF('landscape');
 
         const tabela = document.getElementById('reservasTable');
+        // Captura apenas as linhas visíveis (aplicando o filtro atual)
         const linhasVisiveis = Array.from(tabela.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
         
         if (linhasVisiveis.length === 0) {
@@ -1435,12 +1494,19 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
         doc.setTextColor(50, 50, 50); 
         doc.text("Relatório de Reservas - Festa da Família", 140, 15, { align: "center" });
         doc.setFontSize(10);
-        doc.text(`Reservas no Relatório: ${linhasVisiveis.length} transações`, 140, 22, { align: "center" });
         
-        // NOVO: Adiciona o total de valor no PDF
+        let tituloRelatorio = `Reservas no Relatório: ${linhasVisiveis.length} transações`;
+        if (isFiltrandoCadeirasExtras) {
+            const totalCadeirasNoRelatorio = totalCadeirasExtrasSpan.textContent;
+            tituloRelatorio = `RELATÓRIO: Reservas com CADEIRAS EXTRAS (${totalCadeirasNoRelatorio} cadeiras)`;
+        }
+        
+        doc.text(tituloRelatorio, 140, 22, { align: "center" });
+        
+        // Adiciona o total de valor no PDF
         const valorGeral = valorTotalGeralSpan.textContent;
         const valorArrecadado = valorTotalArrecadadoSpan.textContent;
-        doc.text(`Total Geral: ${valorGeral} | Total Arrecadado (PAGO): ${valorArrecadado}`, 140, 26, { align: "center" });
+        doc.text(`Total Geral VISÍVEL: ${valorGeral} | Total Arrecadado VISÍVEL (PAGO): ${valorArrecadado}`, 140, 26, { align: "center" });
 
 
         doc.autoTable({
@@ -1451,8 +1517,13 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
             styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
             headStyles: { fillColor: [0, 123, 255], textColor: 255 } 
         });
+        
+        let nomeArquivo = `Reservas_Tracos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
+        if (isFiltrandoCadeirasExtras) {
+            nomeArquivo = `Cadeiras_Extras_Relatorio_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
+        }
 
-        doc.save(`Reservas_Tracos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);
+        doc.save(`${nomeArquivo}.pdf`);
     }
 
   </script>
