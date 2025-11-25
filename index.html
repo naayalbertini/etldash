@@ -391,13 +391,19 @@
       font-weight: bold;
       margin-bottom: 15px;
       text-align: center;
-      font-size: 1.2rem;
+      font-size: 1.1rem; /* Reduzido levemente para caber mais info */
       padding: 15px;
       background-color: #e0f7fa; 
       border-radius: 4px;
       color: #00796b;
       border: 1px solid #b2ebf2;
     }
+    /* Destaque para o texto de mesas pagas */
+    .total-reservas #totalMesasPagas, .total-reservas #valorTotalArrecadado { 
+        color: var(--confirmed-color); 
+        font-weight: 700; 
+    }
+    
     .loading-text {
         color: #666;
         font-size: 1.1rem;
@@ -485,8 +491,11 @@
             width: 100%;
         }
         .total-reservas {
-            font-size: 1rem;
+            font-size: 0.9rem; /* Reduzido ainda mais no mobile */
             padding: 10px;
+        }
+        .total-reservas div:last-child {
+             font-size: 1rem; /* Aumenta o valor no mobile */
         }
         
         /* 1. Oculta o cabeçalho original da tabela */
@@ -624,7 +633,17 @@
                 <button class="pdf-button" onclick="exportarPDF()">⬇️ Baixar Relatório (PDF)</button>
             </div>
 
-            <div class="total-reservas">Total de Mesas no Painel: <span id="totalReservas">0</span></div>
+            <div class="total-reservas">
+                <div style="margin-bottom: 5px;">
+                    Total de Mesas no Painel: <span id="totalReservas">0</span> | 
+                    <span style="color: var(--confirmed-color);">Mesas PAGAS: </span><span id="totalMesasPagas" style="font-weight: 700; color: var(--confirmed-color);">0</span>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #b2ebf2; margin: 5px 0;">
+                <div style="font-size: 1.3rem;">
+                    Valor Total GERAL: <span id="valorTotalGeral" style="font-weight: 700;">R$ 0,00</span> | 
+                    <span style="color: var(--confirmed-color);">Valor Total ARRECADADO: </span><span id="valorTotalArrecadado" style="font-weight: 700; color: var(--confirmed-color);">R$ 0,00</span>
+                </div>
+            </div>
             
             <div id="loading" class="loading-text" style="text-align: center;">Carregando dados...</div>
             
@@ -713,7 +732,15 @@
     const errorMessageDiv = document.getElementById('error-message');
     const tbody = document.querySelector('#reservasTable tbody');
     const loadingDiv = document.getElementById('loading');
+    
+    // SPANS DE CONTADOR DE MESAS
     const totalReservasSpan = document.getElementById('totalReservas');
+    const totalMesasPagasSpan = document.getElementById('totalMesasPagas');
+    
+    // NOVO: SPANS DE VALOR TOTAL
+    const valorTotalGeralSpan = document.getElementById('valorTotalGeral');
+    const valorTotalArrecadadoSpan = document.getElementById('valorTotalArrecadado');
+    
     const searchInput = document.getElementById('search-input');
     const headers = document.querySelectorAll('#reservasTable th.sortable');
     const formaPagamentoSelect = document.getElementById('editFormaPagamento');
@@ -723,7 +750,7 @@
     const profileImg = document.getElementById('profile-img');
     
     let dadosAgrupados = [];
-    let sortColumn = 7; // Agora é a coluna Data/Hora
+    let sortColumn = 7; 
     let sortDirection = 'desc';
     
     const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
@@ -731,7 +758,7 @@
     // Array de labels (usado no mobile view)
     const tableLabels = [
         'MESA(S)', 'RESPONSÁVEL', 'TELEFONE', 'ALUNO / TURMA', 
-        'VALOR (R$)', 'PAGAMENTO', 'CADEIRAS EXTRAS', 'DATA/HORA', // NOVO: Cadeiras Extras
+        'VALOR (R$)', 'PAGAMENTO', 'CADEIRAS EXTRAS', 'DATA/HORA', 
         'STATUS', 'AÇÃO'
     ];
 
@@ -754,7 +781,7 @@
     
     // Mapeamento de E-mail para URL da Foto (Use URLs públicas, como do Imgur, Google Drive, ou seu próprio servidor)
     const userProfilePhotos = {
-        "SEU.EMAIL.AQUI@escola.com.br": "URL_DA_SUA_FOTO_AQUI.jpg", // Exemplo: "https://i.imgur.com/SuaFoto.jpg"
+        "SEU.EMAIL.AQUI@escola.com.br": "URL_DA_SUA_FOTO_AQUI.jpg", 
         "financeiro@escola.com.br": "https://i.imgur.com/FinanceiroDefault.png", 
         "admin@escola.com.br": "https://i.imgur.com/AdminDefault.png"       
     };
@@ -859,22 +886,25 @@
                 if (!reserva.status) reserva.status = 'pendente'; 
                 
                 const formaPagamento = reserva.formaPagamento || 'Pix';
-                const telefone = reserva.telefone || 'semtel'; // Telefone é importante para o Agrupamento e WhatsApp
-                const cadeirasExtras = reserva.cadeirasExtras || 0; // Cadeiras Extras
+                const telefone = reserva.telefone || 'semtel'; 
+                const cadeirasExtras = reserva.cadeirasExtras || 0; 
+                
+                // Garantir que valorTotal seja um número, com fallback se necessário
+                const valorTotal = typeof reserva.valorTotal === 'number' ? reserva.valorTotal : parseFloat(reserva.valorTotal) || 0;
 
-                // CORREÇÃO PRINCIPAL: Adiciona mesasSelecionadas (array das mesas no pedido) na chave 
+
+                // Chave de Agrupamento ajustada para incluir cadeirasExtras e valorTotal
                 const mesasLista = reserva.mesasSelecionadas ? reserva.mesasSelecionadas.sort().join('|') : 'semmesas';
-                // Chave de Agrupamento ajustada para incluir cadeirasExtras
-                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${reserva.valorTotal}-${telefone}-${formaPagamento}-${mesasLista}-${cadeirasExtras}`;
-                // FIM DA CORREÇÃO PRINCIPAL 
+                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${valorTotal}-${telefone}-${formaPagamento}-${mesasLista}-${cadeirasExtras}`;
                 
                 if (!reservasMap.has(chaveReserva)) {
                     reservasMap.set(chaveReserva, {
                         ...reserva,
+                        valorTotal: valorTotal, // Usa o valor normalizado
                         formaPagamento: formaPagamento, 
                         telefone: telefone === 'semtel' ? null : telefone,
                         mesas: [mesaId],
-                        cadeirasExtras: cadeirasExtras // Mantém cadeirasExtras
+                        cadeirasExtras: cadeirasExtras 
                     });
                 } else {
                     reservasMap.get(chaveReserva).mesas.push(mesaId);
@@ -899,32 +929,58 @@
         }
     }
     
+    // FILTRAR TABELA ATUALIZADA PARA CONTAR MESAS E SOMAR VALORES
     window.filtrarTabela = function() {
         const termo = searchInput.value.toLowerCase();
         const linhas = tbody.querySelectorAll('tr');
 
-        let mesasVisiveis = 0;
+        let mesasVisiveisGeral = 0;
+        let mesasVisiveisPagas = 0; 
+        let valorVisivelGeral = 0; // NOVO: Soma o valor total de todas as linhas visíveis
+        let valorVisivelArrecadado = 0; // NOVO: Soma o valor total de linhas visíveis com status 'paga'
+
         linhas.forEach(row => {
             const textoLinha = row.textContent.toLowerCase();
             const isVisible = textoLinha.includes(termo);
             row.style.display = isVisible ? '' : 'none';
             
             if(isVisible) {
-                const mesasText = row.querySelector('td:first-child').textContent;
-                // Conta o número de mesas neste grupo visível
-                const count = mesasText.split(',').filter(m => m.trim().length > 0).length;
-                mesasVisiveis += count;
+                // Busca o objeto de dados correspondente (precisa ser eficiente)
+                const mesaPrincipalId = row.querySelector('td:nth-child(10) .action-button').onclick.toString().match(/'([^']*)'/)[1];
+                const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
+                
+                if (reserva) {
+                    const count = reserva.mesas.length;
+                    const valor = reserva.valorTotal || 0; // Usa o valor total da reserva
+
+                    mesasVisiveisGeral += count;
+                    valorVisivelGeral += valor;
+
+                    // Verifica o status
+                    if (reserva.status === 'paga') {
+                        mesasVisiveisPagas += count; 
+                        valorVisivelArrecadado += valor;
+                    }
+                }
             }
         });
-        totalReservasSpan.textContent = mesasVisiveis.toString();
+        
+        // Atualiza os spans de Mesas
+        totalReservasSpan.textContent = mesasVisiveisGeral.toString();
+        totalMesasPagasSpan.textContent = mesasVisiveisPagas.toString();
+        
+        // Atualiza os spans de Valores
+        valorTotalGeralSpan.textContent = `R$ ${valorVisivelGeral.toFixed(2).replace('.', ',')}`;
+        valorTotalArrecadadoSpan.textContent = `R$ ${valorVisivelArrecadado.toFixed(2).replace('.', ',')}`;
     }
+
 
     function ordenarTabela(index, direction) {
         headers.forEach(h => {
             h.classList.remove('sort-asc', 'sort-desc');
         });
 
-        const headerIndex = index >= 7 ? index - 1 : index; // Ajuste no índice devido à nova coluna
+        const headerIndex = index >= 7 ? index - 1 : index; 
 
         headers[headerIndex].classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
 
@@ -936,18 +992,18 @@
                 case 1: aVal = a.nome; bVal = b.nome; break; 
                 case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; 
                 case 3: aVal = a.aluno; bVal = b.aluno; break; 
-                case 4: aVal = a.valorTotal; bVal = b.valorTotal; break; 
+                case 4: aVal = a.valorTotal; bVal = b.valorTotal; break; // Ordena por Valor
                 case 5: aVal = a.formaPagamento || 'Pix'; bVal = b.formaPagamento || 'Pix'; break; 
-                case 6: aVal = parseInt(a.cadeirasExtras || 0); bVal = parseInt(b.cadeirasExtras || 0); break; // Cadeiras Extras
+                case 6: aVal = parseInt(a.cadeirasExtras || 0); bVal = parseInt(b.cadeirasExtras || 0); break; 
                 case 7: 
                 default:
-                    // Ordenação por Data/Hora (coluna 7 - NOVO ÍNDICE)
+                    // Ordenação por Data/Hora 
                     const aDate = new Date(`${a.data.split('/').reverse().join('-')}T${a.horario}:00`);
                     const bDate = new Date(`${b.data.split('/').reverse().join('-')}T${b.horario}:00`);
                     return direction === 'asc' ? aDate - bDate : bDate - aDate;
             }
 
-            if (index === 7) return 0; // Se for data, já foi ordenada acima.
+            if (index === 7) return 0; 
 
             if (typeof aVal === 'number') {
                 return direction === 'asc' ? aVal - bVal : bVal - aVal;
@@ -959,7 +1015,7 @@
         renderizarTabela(dadosAgrupados);
     }
     
-    // Função para gerar a mensagem de Lembrete PIX (Sem emojis problemáticos)
+    // Função para gerar a mensagem de Lembrete PIX 
     function getMensagemLembretePix(reserva) {
         const PIX_CHAVE = "45.701.401/0001-07";
         const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
@@ -984,24 +1040,36 @@ Agradecemos e aguardamos a sua confirmação!
         return mensagem;
     }
 
-    // FUNÇÃO MODIFICADA PARA ADICIONAR data-label E DESTAQUE
+    // FUNÇÃO renderizarTabela MODIFICADA PARA SOMAR VALORES
     function renderizarTabela(reservas) {
         tbody.innerHTML = '';
-        let totalMesas = 0; 
+        let totalMesasGeral = 0; 
+        let totalMesasPagas = 0; 
+        let valorTotalGeral = 0; // NOVO: Acumulador de valor total
+        let valorTotalArrecadado = 0; // NOVO: Acumulador de valor pago
         
-        // Array de labels
         const labels = tableLabels; 
 
         reservas.forEach(reserva => {
             const row = tbody.insertRow();
             
             const numMesas = reserva.mesas.length;
-            totalMesas += numMesas;
+            const valorReserva = reserva.valorTotal || 0; // Garantir que valor exista
+
+            totalMesasGeral += numMesas;
+            valorTotalGeral += valorReserva;
+
+            const status = reserva.status || 'pendente';
+            
+            if (status === 'paga') {
+                totalMesasPagas += numMesas; 
+                valorTotalArrecadado += valorReserva; // Adiciona o valor se for pago
+            }
 
             // 0. Mesa(s) (COM DESTAQUE)
             const mesasCell = row.insertCell();
             const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-            mesasCell.innerHTML = `<span class="mesa-highlight">${mesasTexto}</span>`; // Adiciona a classe de destaque
+            mesasCell.innerHTML = `<span class="mesa-highlight">${mesasTexto}</span>`; 
             mesasCell.setAttribute('data-label', labels[0]);
 
             // 1. Responsável
@@ -1014,7 +1082,6 @@ Agradecemos e aguardamos a sua confirmação!
             telCell.setAttribute('data-label', labels[2]);
             const telefoneFormatado = reserva.telefone ? reserva.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') : 'N/A';
             
-            // Reintrodução do link de Lembrete PIX e formatação do telefone
             telCell.innerHTML = `
               ${telefoneFormatado} 
               ${reserva.telefone ? `<a href="https://wa.me/55${reserva.telefone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(getMensagemLembretePix(reserva))}" target="_blank" class="pix-reminder-button">
@@ -1029,7 +1096,7 @@ Agradecemos e aguardamos a sua confirmação!
 
             // 4. Valor (R$)
             const valorCell = row.insertCell();
-            valorCell.textContent = `R$ ${reserva.valorTotal.toFixed(2).replace('.', ',')}`; 
+            valorCell.textContent = `R$ ${valorReserva.toFixed(2).replace('.', ',')}`; 
             valorCell.setAttribute('data-label', labels[4]);
 
             // 5. Pagamento
@@ -1041,7 +1108,7 @@ Agradecemos e aguardamos a sua confirmação!
             // 6. Cadeiras Extras (COM DESTAQUE)
             const cadeirasCell = row.insertCell();
             const cadeirasTexto = reserva.cadeirasExtras || '0';
-            cadeirasCell.innerHTML = `<span class="cadeiras-highlight">${cadeirasTexto}</span>`; // Adiciona a classe de destaque
+            cadeirasCell.innerHTML = `<span class="cadeiras-highlight">${cadeirasTexto}</span>`; 
             cadeirasCell.setAttribute('data-label', labels[6]);
             
             // 7. Data/Hora (Índice ajustado)
@@ -1052,9 +1119,7 @@ Agradecemos e aguardamos a sua confirmação!
             // 8. Status (Índice ajustado)
             const statusCell = row.insertCell();
             statusCell.setAttribute('data-label', labels[8]);
-            const status = reserva.status || 'pendente';
             
-            // NOVO BLOCO: Lógica para determinar a classe e o texto do status
             let statusClass = 'status-pendente'; 
             let statusText = 'PENDENTE (PIX)';   
 
@@ -1075,18 +1140,13 @@ Agradecemos e aguardamos a sua confirmação!
             
             let actionHTML = '';
             
-            // 1. CANCELAR / ESTORNAR
             actionHTML += `<button class="action-button delete-button" onclick="cancelarReserva('${mesaPrincipal}')">❌ Cancelar / Estornar</button>`;
-            
-            // 2. EDITAR
             actionHTML += `<button class="action-button edit-button" onclick="abrirModalEdicao('${mesaPrincipal}')">✏️ Editar</button>`;
 
-            // 3. CONFIRMAR PAGAMENTO
             if (status === 'pendente' || status === 'cancelamento-solicitado') { 
                 actionHTML += `<button class="action-button confirm-button" onclick="confirmarPagamento('${mesaPrincipal}')">✅ Confirmar</button>`;
             } 
             
-            // 4. MENSAGEM DE CONFIRMAÇÃO FINAL
             if (status === 'paga') {
                 actionHTML += `<button class="action-button" style="background-color: #8e44ad; margin-top: 5px;" onclick="enviarConfirmacaoFinal('${mesaPrincipal}')">✉️ Confirmação Final</button>`; 
             }
@@ -1094,7 +1154,13 @@ Agradecemos e aguardamos a sua confirmação!
             actionCell.innerHTML = actionHTML;
         });
         
-        totalReservasSpan.textContent = totalMesas.toString();
+        // ATUALIZAÇÃO DOS SPANS DE CONTADORES E VALORES
+        totalReservasSpan.textContent = totalMesasGeral.toString();
+        totalMesasPagasSpan.textContent = totalMesasPagas.toString();
+        
+        valorTotalGeralSpan.textContent = `R$ ${valorTotalGeral.toFixed(2).replace('.', ',')}`;
+        valorTotalArrecadadoSpan.textContent = `R$ ${valorTotalArrecadado.toFixed(2).replace('.', ',')}`;
+        
         // Filtra para garantir que apenas os resultados do filtro/busca (se houver) sejam mostrados
         filtrarTabela(); 
     }
@@ -1214,8 +1280,8 @@ Agradecemos e aguardamos a sua confirmação!
         }
         
         // VALORES FIXOS (Ajuste se necessário)
-        const localEvento = "IF BAIANO QUADRA - CAMPUS CATU";
-        const dataEvento = "06 de Dezembro, 19:00h";
+        const localEvento = "Auditório Principal - Colégio Antoni Gaudi";
+        const dataEvento = "15 de Dezembro, 19:00h";
         
         const mesasTexto = reserva.mesas.join(', ');
         const cadeirasTexto = reserva.cadeirasExtras > 0 ? ` + ${reserva.cadeirasExtras} Cadeira(s) Extra(s)` : '';
@@ -1237,7 +1303,7 @@ Obrigado por confirmar sua reserva. Sua presença e a de seus convidados estão 
 *Local:* ${localEvento}
 *Data/Hora:* ${dataEvento}
 
-Esperamos por vocês!
+Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedência.
         `.trim().replace(/\n/g, '%0A');
 
         let telefoneDestino = reserva.telefone;
@@ -1350,13 +1416,12 @@ Esperamos por vocês!
             return;
         }
         
-        // Colunas a serem exportadas: Mesa, Responsável, Telefone, Aluno/Turma, Valor, Pagamento, Cadeiras Extras, Data/Hora
-        // Pega 8 colunas (Mesa(s) até Data/Hora)
-        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim()).slice(0, 8); 
+        // Colunas a serem exportadas: Mesa, Responsável, Telefone, Aluno/Turma, Valor, Pagamento, Cadeiras Extras, Data/Hora, Status
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim()).slice(0, 9); // Pega 9 colunas
 
         const dados = linhasVisiveis.map(row => {
             const cells = Array.from(row.querySelectorAll('td'));
-            return cells.slice(0, 8).map((cell, index) => { // Pega 8 células
+            return cells.slice(0, 9).map((cell, index) => { // Pega 9 células
                 // A coluna Telefone (index 2) precisa do texto sem o link do WhatsApp
                 if (index === 2) { 
                     const text = cell.firstChild ? cell.firstChild.textContent.trim() : cell.textContent.trim();
@@ -1371,9 +1436,15 @@ Esperamos por vocês!
         doc.text("Relatório de Reservas - Festa da Família", 140, 15, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Reservas no Relatório: ${linhasVisiveis.length} transações`, 140, 22, { align: "center" });
+        
+        // NOVO: Adiciona o total de valor no PDF
+        const valorGeral = valorTotalGeralSpan.textContent;
+        const valorArrecadado = valorTotalArrecadadoSpan.textContent;
+        doc.text(`Total Geral: ${valorGeral} | Total Arrecadado (PAGO): ${valorArrecadado}`, 140, 26, { align: "center" });
+
 
         doc.autoTable({
-            startY: 30,
+            startY: 32, // Ajustado para dar espaço para o novo texto
             head: [cabecalhos],
             body: dados,
             theme: 'grid',
@@ -1387,4 +1458,3 @@ Esperamos por vocês!
   </script>
 </body>
 </html>
-
