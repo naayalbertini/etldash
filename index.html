@@ -341,7 +341,7 @@
         color: var(--confirmed-color);
     }
     
-    /* NOVO ESTILO PARA CANCELAMENTO SOLICITADO */
+    /* NOVO: DESTAQUE PARA CANCELAMENTO SOLICITADO */
     .status-cancelamento {
         background-color: #ffc107; 
         color: #333;
@@ -633,6 +633,10 @@
                     <span class="search-icon">🔍</span>
                     <input type="text" id="search-input" placeholder="Buscar por Aluno, Turma, Mesa..." onkeyup="filtrarTabela()">
                 </div>
+                <select id="filtro-turma" onchange="filtrarTabela()" style="margin-left:10px;padding:8px">
+                <option value="">Todas as turmas</option>
+                </select>
+
                 <button id="filter-extra-chairs-button" class="pdf-button" style="background-color: #e67e22;" onclick="toggleFiltrarCadeirasExtras()">🪑 Filtrar Cadeiras Extras</button>
                 <button class="pdf-button" onclick="exportarPDF()">⬇️ Baixar Relatório (PDF)</button>
             </div>
@@ -887,6 +891,9 @@
             dadosAgrupados = [];
 
             const reservasData = snapshot.val();
+            console.log("Firebase - nós lidos:", snapshot.size || (reservasData ? Object.keys(reservasData).length : 0));
+            console.log("Amostra dos dados:", reservasData ? Object.keys(reservasData).slice(0,5).map(k=>({k, v: reservasData[k]})) : reservasData);
+
             if (!reservasData) {
                 renderizarTabela([]);
                 return;
@@ -906,11 +913,13 @@
                 // Garantir que valorTotal seja um número, com fallback se necessário
                 const valorTotal = typeof reserva.valorTotal === 'number' ? reserva.valorTotal : parseFloat(reserva.valorTotal) || 0;
 
-
-                // Chave de Agrupamento ajustada para incluir cadeirasExtras e valorTotal
+                // ---------- CORREÇÃO: chave simplificada e robusta ----------
+                // Antes: incluía muitos campos que quebravam o agrupamento quando ausentes/variavam.
+                // Agora: agrupa por responsável+aluno+data+horário, que são os campos estáveis.
                 const mesasLista = reserva.mesasSelecionadas ? reserva.mesasSelecionadas.sort().join('|') : 'semmesas';
-                const chaveReserva = `${reserva.aluno}-${reserva.nome}-${reserva.data}-${reserva.horario}-${valorTotal}-${telefone}-${formaPagamento}-${mesasLista}-${cadeirasExtras}`;
-                
+                const chaveReserva = `${reserva.nome || ''}-${reserva.aluno || ''}-${reserva.data || ''}-${reserva.horario || ''}`;
+                // ------------------------------------------------------------
+
                 if (!reservasMap.has(chaveReserva)) {
                     reservasMap.set(chaveReserva, {
                         ...reserva,
@@ -926,11 +935,35 @@
             }
             
             dadosAgrupados = Array.from(reservasMap.values());
+            // ATUALIZA O FILTRO DE TURMAS APÓS CARREGAR OS DADOS
+            atualizarFiltroTurmas();
             ordenarTabela(sortColumn, sortDirection);
 
         }, (error) => {
             loadingDiv.textContent = `❌ ERRO FATAL ao buscar dados: ${error.message}.`;
             console.error("Firebase Error:", error);
+        });
+    }
+
+    // FUNÇÃO PARA ATUALIZAR O FILTRO DE TURMAS
+    function atualizarFiltroTurmas() {
+        const select = document.getElementById("filtro-turma");
+        const turmas = new Set();
+
+        // Coleta todas as turmas únicas dos dados agrupados
+        dadosAgrupados.forEach(reserva => {
+            if (reserva.turma) {
+                turmas.add(reserva.turma);
+            }
+        });
+
+        // Limpa e recria as opções
+        select.innerHTML = "<option value=''>Todas as turmas</option>";
+        [...turmas].sort().forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t;
+            select.appendChild(opt);
         });
     }
 
@@ -943,39 +976,35 @@
         }
     }
     
-    // FUNÇÃO DE FILTRO DE TABELA ATUALIZADA (com filtro de cadeiras extras)
+    // FUNÇÃO DE FILTRO DE TABELA ATUALIZADA (com filtro de turmas e cadeiras extras)
     window.filtrarTabela = function() {
         const termo = searchInput.value.toLowerCase();
+        const filtroTurma = document.getElementById('filtro-turma').value;
         const linhas = tbody.querySelectorAll('tr');
 
         let mesasVisiveisGeral = 0;
         let mesasVisiveisPagas = 0; 
         let valorVisivelGeral = 0; 
         let valorVisivelArrecadado = 0; 
-        let cadeirasVisiveis = 0; // NOVO: Acumulador de cadeiras extras visíveis
+        let cadeirasVisiveis = 0;
 
         linhas.forEach(row => {
             const textoLinha = row.textContent.toLowerCase();
             const isVisibleBySearch = textoLinha.includes(termo);
             
-            // Encontra a reserva correspondente para verificar as cadeiras extras
-            // Isso depende da estrutura do action-button, que é onde a mesaPrincipalId é armazenada.
-            const actionButton = row.querySelector('td:nth-child(10) .action-button');
-            let reserva = null;
-            if (actionButton) {
-                const mesaPrincipalIdMatch = actionButton.onclick.toString().match(/'([^']*)'/);
-                if (mesaPrincipalIdMatch && mesaPrincipalIdMatch[1]) {
-                    const mesaPrincipalId = mesaPrincipalIdMatch[1];
-                    reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-                }
-            }
+            // Encontra a reserva correspondente
+            const mesaPrincipalId = row.dataset.mesa;
+            const reserva = mesaPrincipalId ? dadosAgrupados.find(r => Array.isArray(r.mesas) ? r.mesas.includes(mesaPrincipalId) : r.mesas[0] === mesaPrincipalId) : null;
             
             const cadeirasExtrasReserva = reserva ? (reserva.cadeirasExtras || 0) : 0;
             
-            // Lógica do filtro de Cadeiras Extras: visível SE (o filtro não estiver ativo OU (o filtro estiver ativo E cadeirasExtras > 0))
+            // Filtro por turma
+            const isVisibleByTurma = !filtroTurma || (reserva && reserva.turma === filtroTurma);
+            
+            // Filtro por cadeiras extras
             const isVisibleByExtraChairsFilter = !isFiltrandoCadeirasExtras || (isFiltrandoCadeirasExtras && cadeirasExtrasReserva > 0);
             
-            const isVisible = isVisibleBySearch && isVisibleByExtraChairsFilter;
+            const isVisible = isVisibleBySearch && isVisibleByTurma && isVisibleByExtraChairsFilter;
             
             row.style.display = isVisible ? '' : 'none';
             
@@ -986,7 +1015,7 @@
 
                     mesasVisiveisGeral += count;
                     valorVisivelGeral += valor;
-                    cadeirasVisiveis += cadeirasExtrasReserva; // Acumula cadeiras extras visíveis
+                    cadeirasVisiveis += cadeirasExtrasReserva;
 
                     if (reserva.status === 'paga') {
                         mesasVisiveisPagas += count; 
@@ -999,7 +1028,7 @@
         // Atualiza os spans de Mesas e Valores
         totalReservasSpan.textContent = mesasVisiveisGeral.toString();
         totalMesasPagasSpan.textContent = mesasVisiveisPagas.toString();
-        totalCadeirasExtrasSpan.textContent = cadeirasVisiveis.toString(); // NOVO: Atualiza o total de cadeiras visíveis
+        totalCadeirasExtrasSpan.textContent = cadeirasVisiveis.toString();
         
         valorTotalGeralSpan.textContent = `R$ ${valorVisivelGeral.toFixed(2).replace('.', ',')}`;
         valorTotalArrecadadoSpan.textContent = `R$ ${valorVisivelArrecadado.toFixed(2).replace('.', ',')}`;
@@ -1015,49 +1044,59 @@
         } else {
             filterButton.style.backgroundColor = '#e67e22'; // Laranja original
             filterButton.textContent = '🪑 Filtrar Cadeiras Extras';
-            // Limpa o campo de busca quando desativa o filtro, se desejar
-            // searchInput.value = ''; 
         }
         
         // Aplica o filtro imediatamente
         filtrarTabela(); 
     }
 
-
     function ordenarTabela(index, direction) {
-        headers.forEach(h => {
+        // Remove classes dos cabeçalhos sortáveis
+        document.querySelectorAll('#reservasTable th.sortable').forEach(h => {
             h.classList.remove('sort-asc', 'sort-desc');
         });
 
-        const headerIndex = index >= 7 ? index - 1 : index; 
-
-        headers[headerIndex].classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        // Marca corretamente o cabeçalho por data-column-index
+        const headerToMark = document.querySelector(`#reservasTable th[data-column-index="${index}"]`);
+        if (headerToMark) {
+            headerToMark.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
 
         dadosAgrupados.sort((a, b) => {
             let aVal, bVal;
             
             switch (index) {
                 case 0: aVal = parseInt(a.mesas[0]); bVal = parseInt(b.mesas[0]); break; 
-                case 1: aVal = a.nome; bVal = b.nome; break; 
+                case 1: aVal = a.nome || ''; bVal = b.nome || ''; break; 
                 case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; 
-                case 3: aVal = a.aluno; bVal = b.aluno; break; 
-                case 4: aVal = a.valorTotal; bVal = b.valorTotal; break; // Ordena por Valor
+                case 3: aVal = a.aluno || ''; bVal = b.aluno || ''; break; 
+                case 4: aVal = Number(a.valorTotal || 0); bVal = Number(b.valorTotal || 0); break; // Ordena por Valor
                 case 5: aVal = a.formaPagamento || 'Pix'; bVal = b.formaPagamento || 'Pix'; break; 
                 case 6: aVal = parseInt(a.cadeirasExtras || 0); bVal = parseInt(b.cadeirasExtras || 0); break; 
                 case 7: 
                 default:
                     // Ordenação por Data/Hora 
-                    const aDate = new Date(`${a.data.split('/').reverse().join('-')}T${a.horario}:00`);
-                    const bDate = new Date(`${b.data.split('/').reverse().join('-')}T${b.horario}:00`);
-                    return direction === 'asc' ? aDate - bDate : bDate - aDate;
+                    // Proteção para formatos ausentes
+                    const aDataStr = `${(a.data||'').split('/').reverse().join('-') || ''}T${a.horario || '00:00'}:00`;
+                    const bDataStr = `${(b.data||'').split('/').reverse().join('-') || ''}T${b.horario || '00:00'}:00`;
+                    const aDate = new Date(aDataStr);
+                    const bDate = new Date(bDataStr);
+                    if (!isNaN(aDate) && !isNaN(bDate)) {
+                        return direction === 'asc' ? aDate - bDate : bDate - aDate;
+                    } else {
+                        // fallback para strings se data inválida
+                        aVal = (a.data || '') + ' ' + (a.horario || '');
+                        bVal = (b.data || '') + ' ' + (b.horario || '');
+                    }
             }
 
-            if (index === 7) return 0; 
-
-            if (typeof aVal === 'number') {
+            // Se aVal/bVal estiverem definidas acima como valor simples:
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
                 return direction === 'asc' ? aVal - bVal : bVal - aVal;
             } else {
-                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                aVal = aVal || '';
+                bVal = bVal || '';
+                return direction === 'asc' ? aVal.toString().localeCompare(bVal.toString()) : bVal.toString().localeCompare(aVal.toString());
             }
         });
 
@@ -1189,6 +1228,10 @@ Agradecemos e aguardamos a sua confirmação!
             const actionCell = row.insertCell();
             actionCell.setAttribute('data-label', labels[9]); 
             const mesaPrincipal = reserva.mesas[0];
+            
+            // ---------- CORREÇÃO: armazenar mesaPrincipal no dataset para busca/filtragem ----------
+            row.dataset.mesa = mesaPrincipal;
+            // ------------------------------------------------------------------------------------
             
             let actionHTML = '';
             
@@ -1375,8 +1418,6 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
         // Envia APENAS a mensagem de texto
         window.open(`https://wa.me/55${telefoneDestino}?text=${mensagemFinal}`, '_blank');
     };
-
-
     // FUNÇÕES DO MODAL DE EDIÇÃO 
     window.abrirModalEdicao = function(mesaPrincipalId) {
         const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
@@ -1529,4 +1570,3 @@ Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedên
   </script>
 </body>
 </html>
-
