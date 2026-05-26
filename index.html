@@ -1,1572 +1,473 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Gestão - Festa da Família</title>
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Gestão - Traços Culturais</title>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  
+
   <style>
-    /* VARIÁVEIS DE COR PARA TEMA GLASS/SOFISTICADO */
-    :root {
-      --bg-light: #f9f9f9;
-      --bg-card: white;
-      --text-dark: #333;
-      --accent-color: #007bff; /* Azul primário */
-      --header-color: #f1f1f1;
-      --border-color: #e0e0e0;
-      --reserved-color: #dc3545; /* Vermelho Padrão (Pendente) */
-      --confirmed-color: #28a745; /* Verde Padrão (Confirmado) */
-      
-      /* Novas variáveis para o design de login */
-      --glass-bg: rgba(255, 255, 255, 0.1); 
-      --login-card-bg: white;
-      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+    :root{
+      --page:#f6efe4; --card:#fffdf8; --ink:#1f2937; --muted:#667085; --line:#eadcc7;
+      --blue:#1f5f8b; --blue-dark:#163f63; --green:#238b57; --red:#c93d32;
+      --yellow:#f2b233; --orange:#d96b27; --gray:#7b8490; --purple:#7c3aed;
+      --shadow:0 18px 45px rgba(32,48,64,.12); --soft:0 8px 24px rgba(32,48,64,.08);
+      --radius:22px;
     }
-    
-    body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      /* Fundo com gradiente suave e moderno */
-      background: linear-gradient(135deg, #eef1f5 0%, #dcdfe4 100%);
-      color: var(--text-dark);
-      padding: 0; 
-      margin: 0;
-      line-height: 1.6;
-    }
-    
-    .container {
-      max-width: 1300px;
-      margin: 0 auto;
-      background: var(--bg-card);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* ESTILOS ELEGANTES PARA A TELA DE LOGIN */
-    #login-screen {
-        display: none; 
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        /* Adiciona fundo suave para o login */
-        background: linear-gradient(135deg, #eef1f5 0%, #dcdfe4 100%); 
-    }
-    
-    .login-container {
-        /* Card de login branco puro com sombra sofisticada */
-        background: var(--login-card-bg); 
-        padding: 50px 40px; 
-        border-radius: 16px; 
-        box-shadow: var(--shadow-soft); 
-        width: 100%;
-        max-width: 360px; 
-        text-align: center;
-        border: 1px solid #f0f0f0; 
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--ink);background:
+      radial-gradient(circle at top left,rgba(242,178,51,.23),transparent 32%),
+      radial-gradient(circle at top right,rgba(31,95,139,.18),transparent 28%),
+      linear-gradient(180deg,#fff7e8 0%,#f6ead8 52%,#f2dfc5 100%);min-height:100vh}
+    button,input,select,textarea{font-family:inherit}
+    .hidden{display:none!important}
 
-    .login-container h1 {
-        color: var(--text-dark); 
-        margin-bottom: 35px; 
-        font-weight: 300; 
-        font-size: 2.5em; 
-        letter-spacing: 1px;
-        border-bottom: none;
-    }
+    #login-screen{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#fff7e8,#f2dfc5)}
+    .login-card{width:min(94vw,430px);background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:28px;padding:34px;box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden}
+    .login-card:before{content:"";position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,var(--blue),var(--yellow),var(--red),var(--green))}
+    .login-card h1{margin:12px 0 8px;color:var(--blue-dark);font-size:2rem}
+    .login-card p{margin:0 0 24px;color:var(--muted)}
+    .login-card input{width:100%;padding:14px 15px;margin:8px 0;border:1px solid #d8cbb9;border-radius:14px;background:#fffdf8;font-size:1rem;outline:none}
+    .login-card input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(31,95,139,.13)}
+    .primary-btn{border:0;border-radius:15px;padding:13px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;font-weight:900;cursor:pointer;box-shadow:0 10px 20px rgba(31,95,139,.18)}
+    .login-card .primary-btn{width:100%;margin-top:12px;font-size:1rem}
+    #error-message{margin-top:14px;color:var(--red);font-weight:800}
 
-    #login-screen input[type="email"], #login-screen input[type="password"] {
-        width: 100%;
-        padding: 14px 12px; 
-        margin: 10px 0 20px 0;
-        border: 1px solid #ccc; 
-        border-radius: 8px; 
-        box-sizing: border-box;
-        font-size: 16px;
-        background-color: #f7f7f7; 
-        transition: all 0.3s;
-    }
-    #login-screen input:focus {
-        border-color: var(--accent-color); 
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15); 
-        outline: none;
-        background-color: white; 
-    }
-    
-    #login-screen button {
-        background-color: var(--accent-color);
-        color: white;
-        padding: 15px 20px;
-        margin: 15px 0 8px 0;
-        border: none;
-        border-radius: 8px; 
-        cursor: pointer;
-        width: 100%;
-        font-size: 17px;
-        font-weight: 500; 
-        letter-spacing: 0.5px;
-        transition: background-color 0.3s, box-shadow 0.2s;
-        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
-    }
+    #dashboard-content{display:none;padding:24px 14px 44px}
+    .shell{max-width:1420px;margin:0 auto}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand-badge{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,var(--blue),var(--yellow));display:grid;place-items:center;color:#fff;font-size:1.45rem;box-shadow:var(--soft)}
+    .brand h1{margin:0;color:var(--blue-dark);font-size:clamp(1.5rem,3vw,2.45rem);letter-spacing:-.8px}
+    .brand p{margin:3px 0 0;color:var(--muted);font-weight:700}
+    .user-box{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:var(--soft)}
+    .profile-photo{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#e9f3fb}
+    .logout-button{border:1px solid #efb9b3;background:#fff6f4;color:var(--red);padding:9px 12px;border-radius:12px;font-weight:900;cursor:pointer}
 
-    #login-screen button:hover {
-        background-color: #0056b3;
-        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
-    }
-    
-    #error-message {
-        color: var(--reserved-color);
-        margin-top: 15px;
-        font-weight: 500;
-    }
-    /* FIM: ESTILOS ELEGANTES PARA LOGIN */
+    .metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
+    .metric{background:rgba(255,255,255,.84);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--soft)}
+    .metric span{display:block;color:var(--muted);font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+    .metric strong{display:block;margin-top:7px;font-size:1.55rem;color:var(--blue-dark)}
+    .metric.pending strong{color:var(--red)} .metric.paid strong{color:var(--green)} .metric.money strong{color:var(--orange)} .metric.cancel strong{color:var(--gray)}
 
-    /* Estilos do Painel de Gestão */
-    #dashboard-content {
-        display: none; 
-        padding: 20px;
-    }
-    .user-info {
-        display: none; 
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 25px;
-        font-size: 1.1rem;
-    }
-    .user-info span {
-        display: flex;
-        align-items: center;
-        color: var(--text-dark);
-    }
-    
-    /* NOVO ESTILO PARA A IMAGEM DE PERFIL */
-    .profile-photo {
-        width: 35px; /* Tamanho da foto */
-        height: 35px;
-        border-radius: 50%; /* Torna a foto redonda */
-        margin-right: 10px;
-        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
-        border: 2px solid var(--accent-color); /* Borda sutil */
-    }
+    .panel{background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:28px;padding:18px;box-shadow:var(--shadow)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .tab-btn{border:1px solid var(--line);background:#fffdf8;color:var(--ink);border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}
+    .tab-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 8px 18px rgba(31,95,139,.18)}
+    .tools{display:grid;grid-template-columns:1.5fr .75fr .75fr auto auto;gap:10px;align-items:center;margin-bottom:14px}
+    .tools input,.tools select{width:100%;border:1px solid #d8cbb9;border-radius:14px;padding:12px 13px;background:#fffdf8;outline:none}
+    .tools input:focus,.tools select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(31,95,139,.11)}
+    .tool-btn{border:0;border-radius:14px;padding:12px 13px;font-weight:900;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--blue-dark);white-space:nowrap}
+    .tool-btn.pdf{background:linear-gradient(135deg,var(--red),#a9362d);color:#fff;border:0}
+    .tool-btn.extra.active{background:var(--green);color:#fff;border-color:var(--green)}
 
-    /* O estilo profile-icon não é mais necessário, mas o mantemos para fallback ou estrutura */
-    .user-info .profile-icon {
-        font-size: 1.5rem;
-        margin-right: 10px;
-        color: var(--accent-color);
-    }
-    /* FIM NOVO ESTILO */
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:20px;background:#fffdf8}
+    table{width:100%;border-collapse:collapse;min-width:1180px}
+    th,td{padding:12px 10px;border-bottom:1px solid #efe1cf;text-align:left;font-size:.86rem;vertical-align:top}
+    th{position:sticky;top:0;background:#fff4df;color:#5b3d18;text-transform:uppercase;font-size:.74rem;letter-spacing:.45px;z-index:1;cursor:pointer}
+    tbody tr:hover{background:#fff8ec}
+    .pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-weight:900;font-size:.76rem;white-space:nowrap}
+    .pill.pendente{background:#ffe3df;color:var(--red)} .pill.paga{background:#dcf7e8;color:var(--green)}
+    .pill.cancelamento-solicitado{background:#eef0f3;color:#555} .pill.cancelamento-aprovado{background:#f3e8ff;color:var(--purple)}
+    .mesa-tag{display:inline-flex;background:#e9f3fb;color:var(--blue-dark);font-weight:900;border-radius:10px;padding:6px 9px}
+    .chairs-tag{display:inline-flex;background:#fff3d0;color:#8a4a13;font-weight:900;border-radius:10px;padding:6px 9px}
+    .actions{display:flex;flex-wrap:wrap;gap:6px;min-width:250px}
+    .action{border:0;border-radius:10px;padding:8px 10px;font-size:.76rem;font-weight:900;cursor:pointer;color:#fff;white-space:nowrap}
+    .action.charge{background:var(--orange)} .action.confirm{background:var(--green)} .action.final{background:var(--blue)} .action.edit{background:var(--yellow);color:#3e2a12}
+    .action.cancel{background:var(--red)} .action.location{background:var(--purple)} .action.release{background:#475467}
+    #loading{padding:20px;text-align:center;color:var(--muted);font-weight:800}
 
-    .logout-button {
-        background: none;
-        border: 1px solid var(--reserved-color);
-        color: var(--reserved-color);
-        padding: 8px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s, color 0.2s;
-    }
-    .logout-button:hover {
-        background-color: var(--reserved-color);
-        color: white;
-    }
-    
-    h1 {
-      color: var(--text-dark);
-      text-align: left;
-      margin-bottom: 25px;
-      font-weight: 300;
-      font-size: 2em;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 10px;
-    }
-    
-    .actions-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        gap: 10px; /* Reduzido o gap para 3 botões */
-    }
-    .search-area {
-        position: relative;
-        flex-grow: 1;
-    }
-    #search-input {
-      width: 100%;
-      padding: 10px 10px 10px 45px;
-      border: 1px solid var(--border-color);
-      background-color: var(--bg-card);
-      color: var(--text-dark);
-      border-radius: 4px;
-      box-sizing: border-box;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-    #search-input:focus {
-        border-color: var(--accent-color);
-        outline: none;
-    }
-    .search-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.2rem;
-        color: #777;
-    }
-    .pdf-button {
-        background-color: var(--reserved-color);
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: background-color 0.2s, transform 0.1s;
-        white-space: nowrap; /* Impede quebras de linha em botões na área de trabalho */
-    }
-    .pdf-button:hover {
-        background-color: #c82333;
-        transform: translateY(-1px);
-    }
+    .modal{display:none;position:fixed;inset:0;z-index:80;background:rgba(32,48,64,.58);backdrop-filter:blur(7px);align-items:center;justify-content:center;padding:16px}
+    .modal-card{width:min(94vw,560px);max-height:90vh;overflow:auto;background:#fffdf8;border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:0 30px 80px rgba(32,48,64,.35);position:relative}
+    .modal-card h2{margin:0 0 14px;color:var(--blue-dark)}
+    .close{position:absolute;right:18px;top:14px;border:0;background:transparent;font-size:30px;cursor:pointer;color:var(--red)}
+    .modal-card label{display:block;margin:12px 0 6px;font-weight:900;color:#344054}
+    .modal-card input,.modal-card select,.modal-card textarea{width:100%;border:1px solid #d8cbb9;border-radius:13px;padding:12px;background:#fff;outline:none}
+    .modal-actions{display:flex;gap:10px;margin-top:16px}.modal-actions button{flex:1}
+    .secondary-btn{border:1px solid var(--line);border-radius:15px;padding:13px 16px;background:#fff;color:var(--ink);font-weight:900;cursor:pointer}
 
-    /* ESTILOS DA TABELA */
-    
-    #reservasTable {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: var(--bg-card);
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    #reservasTable th, #reservasTable td {
-      padding: 12px 10px; /* Padding reduzido para mais colunas */
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.85rem; /* Fonte ligeiramente menor */
-    }
-    #reservasTable th {
-      background-color: var(--header-color);
-      color: var(--text-dark);
-      font-weight: 600;
-      text-transform: uppercase;
-      cursor: pointer;
-      position: relative;
-      letter-spacing: 0.5px;
-      white-space: nowrap; 
-    }
-    #reservasTable th:hover {
-      background-color: #e9e9e9;
-    }
-    #reservasTable tbody tr:hover {
-      background-color: #f5f5f5;
-    }
-    
-    .sort-asc::after { color: var(--accent-color); content: ' ▲'; font-size: 0.8em; }
-    .sort-desc::after { color: var(--accent-color); content: ' ▼'; font-size: 0.8em; }
-    
-    /* NOVO: DESTAQUE PARA MESAS */
-    .mesa-highlight {
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        background-color: #e3f2fd; /* Azul muito claro */
-        color: var(--accent-color); /* Azul principal */
-        border-radius: 4px;
-        padding: 5px 8px !important;
-        text-align: center !important;
-        display: inline-block; /* Garante que o span se comporte como um bloco para o padding */
-        min-width: 30px; /* Garante que todos os números de mesas tenham um tamanho mínimo */
-    }
-    
-    /* NOVO: DESTAQUE PARA CADEIRAS EXTRAS */
-    .cadeiras-highlight {
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        background-color: #fff3e0; /* Amarelo muito claro */
-        color: #e67e22; /* Laranja forte */
-        border-radius: 4px;
-        padding: 5px 8px !important;
-        text-align: center !important;
-        display: inline-block; /* Garante que o span se comporte como um bloco para o padding */
-        min-width: 30px;
-    }
-
-
-    /* ESTILO DO BOTÃO DE LEMBRETE PIX */
-    .pix-reminder-button { 
-        background-color: #f39c12; 
-        color: white;
-        margin-left: 5px; 
-        text-decoration: none; 
-        padding: 4px 8px; 
-        border-radius: 4px; 
-        font-weight: bold; 
-        font-size: 0.75rem; /* Ajustado */
-        display: inline-block;
-        white-space: nowrap; 
-    }
-    .pix-reminder-button:hover {
-        background-color: #e67e22;
-    }
-
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 8px; /* Ajustado */
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 0.75rem; /* Ajustado */
-    }
-    /* Status PENDENTE agora é VERMELHO */
-    .status-pendente {
-        background-color: #f8d7da; 
-        color: var(--reserved-color);
-    }
-    /* Status CONFIRMADO agora é VERDE */
-    .status-confirmado {
-        background-color: #d4edda; 
-        color: var(--confirmed-color);
-    }
-    
-    /* NOVO: DESTAQUE PARA CANCELAMENTO SOLICITADO */
-    .status-cancelamento {
-        background-color: #ffc107; 
-        color: #333;
-        border: 1px solid #e0a800;
-    }
-    
-    /* ESTILO PARA ALINHAR BOTÕES NA COLUNA AÇÃO (Versão Desktop) - AGORA É A 10ª COLUNA */
-    #reservasTable td:nth-child(10) { 
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        align-items: flex-start;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-
-
-    .action-button {
-        color: white;
-        border: none;
-        padding: 8px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.8rem; /* Ajustado */
-        transition: background-color 0.2s;
-        margin: 2px 0;
-        display: block; 
-        width: 100%;
-        text-align: center;
-        white-space: nowrap;
-    }
-    .confirm-button {
-        background-color: var(--accent-color);
-    }
-    .edit-button {
-        background-color: #ffc107; 
-        color: #333;
-    }
-    .delete-button {
-        background-color: var(--reserved-color); 
-    }
-    .action-button:hover, .confirm-button:hover {
-        opacity: 0.9;
-    }
-
-    .total-reservas {
-      font-weight: bold;
-      margin-bottom: 15px;
-      text-align: center;
-      font-size: 1.1rem; /* Reduzido levemente para caber mais info */
-      padding: 15px;
-      background-color: #e0f7fa; 
-      border-radius: 4px;
-      color: #00796b;
-      border: 1px solid #b2ebf2;
-    }
-    /* Destaque para o texto de mesas pagas */
-    .total-reservas #totalMesasPagas, .total-reservas #valorTotalArrecadado { 
-        color: var(--confirmed-color); 
-        font-weight: 700; 
-    }
-    /* Destaque para o texto de Cadeiras Extras */
-    .total-reservas #totalCadeirasExtras { 
-        color: #e67e22; /* Laranja forte */ 
-        font-weight: 700; 
-    }
-    
-    .loading-text {
-        color: #666;
-        font-size: 1.1rem;
-    }
-    
-    #editModal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-content-edit {
-        background-color: var(--bg-card);
-        padding: 25px;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 450px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    .modal-content-edit label {
-        display: block;
-        margin-top: 10px;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-    .modal-content-edit input, .modal-content-edit select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    .modal-content-edit h2 {
-        margin-top: 0;
-        color: var(--text-dark);
-    }
-    .close-button {
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        color: #aaa;
-    }
-    .close-button:hover {
-        color: #333;
-    }
-
-    /* RESPONSIVIDADE (Novas Regras de Tabela em Card View) */
-    @media (max-width: 768px) {
-        body { padding: 0; }
-        .container {
-            padding: 15px;
-            border-radius: 0;
-            box-shadow: none;
-            min-height: 100vh;
-        }
-        h1 {
-            font-size: 1.8em;
-        }
-        .user-info {
-             flex-direction: column;
-             align-items: flex-start;
-             padding-bottom: 10px;
-        }
-        .logout-button {
-             margin-top: 10px;
-             font-size: 0.9rem;
-        }
-        .actions-bar {
-            flex-direction: column;
-            gap: 10px;
-        }
-        .search-area, .pdf-button {
-            width: 100%;
-        }
-        .total-reservas {
-            font-size: 0.9rem; /* Reduzido ainda mais no mobile */
-            padding: 10px;
-        }
-        .total-reservas div:last-child {
-             font-size: 1rem; /* Aumenta o valor no mobile */
-        }
-        
-        /* 1. Oculta o cabeçalho original da tabela */
-        #reservasTable thead {
-            display: none;
-        }
-
-        /* 2. Transforma a linha da tabela (<tr>) em um bloco/card */
-        #reservasTable tr {
-            display: block;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            padding: 10px;
-            background-color: var(--bg-card);
-        }
-        
-        /* 3. Transforma a célula da tabela (<td>) em um bloco para empilhamento vertical */
-        #reservasTable td {
-            display: flex; 
-            justify-content: space-between;
-            text-align: right;
-            border: none; 
-            padding: 8px 0; 
-            font-size: 0.95rem;
-        }
-        
-        /* 4. Injeta o cabeçalho (data-label) usando pseudo-elemento */
-        #reservasTable td::before {
-            content: attr(data-label);
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #555; 
-            padding-right: 10px;
-            text-align: left;
-            flex-shrink: 0; 
-        }
-        
-        /* NOVO: Ajuste na célula de mesas no mobile (para o destaque) */
-        #reservasTable td:nth-child(1) { /* Coluna Mesa(s) */
-            background-color: #e3f2fd; 
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            padding: 10px 10px;
-        }
-
-        /* NOVO: Ajuste na célula de cadeiras no mobile (para o destaque) */
-        #reservasTable td:nth-child(7) { /* Coluna Cadeiras Extras */
-            background-color: #fff3e0;
-            padding: 10px 10px;
-        }
-        
-        /* NOVO: Ajuste para garantir que o texto destaque no mobile */
-        #reservasTable td:nth-child(1) .mesa-highlight,
-        #reservasTable td:nth-child(7) .cadeiras-highlight {
-            background: none !important; /* Remove o fundo extra no span, usa o fundo do TD */
-            color: var(--accent-color);
-            font-size: 1.1rem !important;
-        }
-
-
-        /* 5. Telefone: Ajuste a coluna de telefone para alinhar o número e o botão PIX */
-        #reservasTable td:nth-child(3) {
-            flex-direction: column; 
-            align-items: flex-start;
-            text-align: left;
-        }
-        #reservasTable td:nth-child(3) .pix-reminder-button {
-            margin-left: 0;
-            text-align: center;
-            width: 100%;
-            margin-top: 5px;
-        }
-        
-        /* 6. Ação: Ajuste a coluna de ação (agora 10ª) para alinhar à esquerda e ocupar o espaço total */
-        #reservasTable td:nth-child(10) { 
-            flex-direction: column;
-            align-items: flex-start;
-            padding-top: 10px;
-            padding-bottom: 5px;
-            border-top: 1px dashed var(--border-color);
-            margin-top: 5px;
-            text-align: left; 
-        }
-        #reservasTable td:nth-child(10)::before {
-            display: none; 
-        }
-        .action-button {
-            font-size: 0.8rem;
-            padding: 8px 10px;
-            width: 100%;
-        }
-        /* Ajuste na coluna de status para alinhamento */
-        #reservasTable td:nth-child(9) { /* Coluna Status, agora 9ª */
-            text-align: right;
-        }
-
-
-        /* Login screen compacta */
-        .login-container {
-            padding: 30px 25px;
-        }
-    }
+    @media(max-width:1000px){.metrics{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:1fr 1fr}.tools .tool-btn{width:100%}}
+    @media(max-width:720px){#dashboard-content{padding:14px 8px 34px}.topbar{flex-direction:column;align-items:stretch}.user-box{justify-content:space-between}.metrics{grid-template-columns:repeat(2,1fr)}.panel{padding:12px;border-radius:20px}.tools{grid-template-columns:1fr}.table-wrap{border:0;background:transparent;overflow:visible}table{min-width:0}thead{display:none}tbody tr{display:block;background:#fffdf8;border:1px solid var(--line);border-radius:18px;margin-bottom:12px;padding:10px;box-shadow:var(--soft)}td{display:flex;justify-content:space-between;gap:12px;border:0;padding:8px 4px;font-size:.9rem}td:before{content:attr(data-label);font-weight:900;color:var(--muted);text-transform:uppercase;font-size:.72rem;text-align:left}.actions{width:100%;min-width:0}.actions .action{flex:1 1 46%}.metrics .metric strong{font-size:1.25rem}}
   </style>
 </head>
 <body>
-  
-    <div id="login-screen">
-        <div class="login-container">
-            <h1>Acesso ao Painel</h1>
-            <input type="email" id="email" placeholder="E-mail" required>
-            <input type="password" id="password" placeholder="Senha" required>
-            <button onclick="login()">Entrar</button>
-            <div id="error-message"></div>
-        </div>
+  <section id="login-screen">
+    <div class="login-card">
+      <h1>Painel de Gestão</h1>
+      <p>Traços Culturais · Reservas de mesas</p>
+      <input type="email" id="email" placeholder="E-mail" autocomplete="email" />
+      <input type="password" id="password" placeholder="Senha" autocomplete="current-password" />
+      <button class="primary-btn" onclick="login()">Entrar no painel</button>
+      <div id="error-message"></div>
     </div>
-    <div id="dashboard-content">
-        <div class="container">
-            
-            <div id="user-info" class="user-info">
-                <span>
-                    <img id="profile-img" class="profile-photo" src="" alt="Foto de Perfil">
-                    Olá, <span id="saudacao-nome">Carregando...</span>
-                </span>
-                <button class="logout-button" onclick="fazerLogout()">Sair</button>
-            </div>
+  </section>
+
+  <main id="dashboard-content">
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-badge">🌽</div>
+          <div>
             <h1>Gestão de Reservas</h1>
-            
-            <div class="actions-bar">
-                <div class="search-area">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="search-input" placeholder="Buscar por Aluno, Turma, Mesa..." onkeyup="filtrarTabela()">
-                </div>
-                <select id="filtro-turma" onchange="filtrarTabela()" style="margin-left:10px;padding:8px">
-                <option value="">Todas as turmas</option>
-                </select>
-
-                <button id="filter-extra-chairs-button" class="pdf-button" style="background-color: #e67e22;" onclick="toggleFiltrarCadeirasExtras()">🪑 Filtrar Cadeiras Extras</button>
-                <button class="pdf-button" onclick="exportarPDF()">⬇️ Baixar Relatório (PDF)</button>
-            </div>
-
-            <div class="total-reservas">
-                <div style="margin-bottom: 5px;">
-                    Total de Mesas no Painel: <span id="totalReservas">0</span> | 
-                    <span style="color: var(--confirmed-color);">Mesas PAGAS: </span><span id="totalMesasPagas" style="font-weight: 700; color: var(--confirmed-color);">0</span> |
-                    <span style="color: #e67e22;">Cadeiras Extras: </span><span id="totalCadeirasExtras" style="font-weight: 700; color: #e67e22;">0</span>
-                    </div>
-                <hr style="border: 0; border-top: 1px solid #b2ebf2; margin: 5px 0;">
-                <div style="font-size: 1.3rem;">
-                    Valor Total GERAL: <span id="valorTotalGeral" style="font-weight: 700;">R$ 0,00</span> | 
-                    <span style="color: var(--confirmed-color);">Valor Total ARRECADADO: </span><span id="valorTotalArrecadado" style="font-weight: 700; color: var(--confirmed-color);">R$ 0,00</span>
-                </div>
-            </div>
-            
-            <div id="loading" class="loading-text" style="text-align: center;">Carregando dados...</div>
-            
-            <table id="reservasTable">
-                <thead>
-                    <tr>
-                    <th data-column-index="0" class="sortable">Mesa(s)</th>
-                    <th data-column-index="1" class="sortable">Responsável</th>
-                    <th data-column-index="2" class="sortable">Telefone</th> 
-                    <th data-column-index="3" class="sortable">Aluno / Turma</th>
-                    <th data-column-index="4" class="sortable">Valor (R$)</th>
-                    <th data-column-index="5" class="sortable">Pagamento</th> 
-                    <th data-column-index="6" class="sortable">Cadeiras Extras</th> 
-                    <th data-column-index="7" class="sortable sort-desc">Data/Hora</th> 
-                    <th>Status</th>
-                    <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-                </table>
-            </div>
-    </div>
-    <div id="editModal">
-        <div class="modal-content-edit">
-            <span class="close-button" onclick="fecharModalEdicao()">&times;</span>
-            <h2>Editar Reserva</h2>
-            <p>Editando reserva principal da(s) mesa(s): <strong id="editMesas"></strong></p>
-            
-            <input type="hidden" id="editMesaPrincipalId">
-
-            <label for="editNome">Responsável:</label>
-            <input type="text" id="editNome">
-
-            <label for="editTelefone">WhatsApp (Apenas números):</label>
-            <input type="tel" id="editTelefone" pattern="[0-9]{11}">
-            
-            <label for="editAluno">Aluno:</label>
-            <input type="text" id="editAluno">
-            
-            <label for="editTurma">Turma:</label>
-            <input type="text" id="editTurma">
-
-            <label for="editCadeirasExtras">Cadeiras Extras:</label>
-            <input type="number" id="editCadeirasExtras" min="0" value="0"> 
-            
-            <label for="editFormaPagamento">Forma de Pagamento:</label>
-            <select id="editFormaPagamento" onchange="toggleOutrosField()">
-                <option value="Pix">Pix</option>
-                <option value="Cartao Credito">Cartão de Crédito</option>
-                <option value="Cartao Debito">Cartão de Débito</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Outros">Outros...</option>
-            </select>
-            <input type="text" id="editOutrosDetalhe" placeholder="Especifique o tipo de pagamento" style="display: none; margin-top: -10px;">
-            <button class="action-button confirm-button" onclick="salvarEdicao()">Salvar Alterações</button>
-            <button class="action-button delete-button" onclick="fecharModalEdicao()" style="background-color: #6c757d;">Cancelar</button>
+            <p>Controle financeiro, mensagens instantâneas e acompanhamento das mesas.</p>
+          </div>
         </div>
+        <div id="user-info" class="user-box">
+          <img id="profile-img" class="profile-photo" src="https://i.imgur.com/p9vF6qj.png" alt="Perfil" />
+          <strong>Olá, <span id="saudacao-nome">Coordenação</span></strong>
+          <button class="logout-button" onclick="fazerLogout()">Sair</button>
+        </div>
+      </div>
+
+      <section class="metrics">
+        <div class="metric"><span>Total de mesas</span><strong id="mTotalMesas">0</strong></div>
+        <div class="metric pending"><span>Pendentes</span><strong id="mPendentes">0</strong></div>
+        <div class="metric paid"><span>Pagas</span><strong id="mPagas">0</strong></div>
+        <div class="metric money"><span>Valor arrecadado</span><strong id="mArrecadado">R$ 0,00</strong></div>
+        <div class="metric"><span>Valor a receber</span><strong id="mReceber">R$ 0,00</strong></div>
+        <div class="metric cancel"><span>Cancelamentos</span><strong id="mCancelamentos">0</strong></div>
+      </section>
+
+      <section class="panel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="todas" onclick="setAba('todas')">Todas</button>
+          <button class="tab-btn" data-tab="pendente" onclick="setAba('pendente')">Pendentes</button>
+          <button class="tab-btn" data-tab="paga" onclick="setAba('paga')">Pagas</button>
+          <button class="tab-btn" data-tab="cancelamento-solicitado" onclick="setAba('cancelamento-solicitado')">Cancelamentos</button>
+        </div>
+
+        <div class="tools">
+          <input id="search-input" type="search" placeholder="Buscar por responsável, aluno, turma, telefone ou mesa..." oninput="filtrarTabela()" />
+          <select id="filtro-turma" onchange="filtrarTabela()"><option value="">Todas as turmas</option></select>
+          <select id="filtro-pagamento" onchange="filtrarTabela()"><option value="">Todos os pagamentos</option><option value="Pix">Pix</option><option value="Cartao Credito">Cartão crédito</option><option value="Cartao Debito">Cartão débito</option><option value="Dinheiro">Dinheiro</option><option value="Outros">Outros</option></select>
+          <button id="filter-extra-chairs-button" class="tool-btn extra" onclick="toggleFiltrarCadeirasExtras()">🪑 Cadeiras extras</button>
+          <button class="tool-btn pdf" onclick="exportarPDF()">⬇️ PDF</button>
+        </div>
+
+        <div id="loading">Carregando dados...</div>
+        <div class="table-wrap">
+          <table id="reservasTable">
+            <thead>
+              <tr>
+                <th onclick="ordenarTabela(0)">Mesa(s)</th><th onclick="ordenarTabela(1)">Responsável</th><th onclick="ordenarTabela(2)">Telefone</th><th onclick="ordenarTabela(3)">Aluno/Turma</th><th onclick="ordenarTabela(4)">Valor</th><th onclick="ordenarTabela(5)">Pagamento</th><th onclick="ordenarTabela(6)">Cadeiras</th><th onclick="ordenarTabela(7)">Data/Hora</th><th>Status</th><th>Ações rápidas</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
+  </main>
+
+  <div id="editModal" class="modal">
+    <div class="modal-card">
+      <button class="close" onclick="fecharModalEdicao()">&times;</button>
+      <h2>Editar reserva</h2>
+      <p>Mesas: <strong id="editMesas"></strong></p>
+      <input type="hidden" id="editMesaPrincipalId" />
+      <label>Responsável</label><input type="text" id="editNome" />
+      <label>WhatsApp</label><input type="tel" id="editTelefone" />
+      <label>Aluno</label><input type="text" id="editAluno" />
+      <label>Turma</label><input type="text" id="editTurma" />
+      <label>Cadeiras extras</label><input type="number" id="editCadeirasExtras" min="0" max="2" />
+      <label>Forma de pagamento</label>
+      <select id="editFormaPagamento" onchange="toggleOutrosField()"><option value="Pix">Pix</option><option value="Cartao Credito">Cartão de Crédito</option><option value="Cartao Debito">Cartão de Débito</option><option value="Dinheiro">Dinheiro</option><option value="Outros">Outros...</option></select>
+      <input type="text" id="editOutrosDetalhe" placeholder="Especifique o pagamento" style="display:none;margin-top:10px" />
+      <label>Observações internas</label><textarea id="editObservacoes" rows="3" placeholder="Ex.: comprovante recebido, estorno combinado..."></textarea>
+      <div class="modal-actions"><button class="primary-btn" onclick="salvarEdicao()">Salvar</button><button class="secondary-btn" onclick="fecharModalEdicao()">Cancelar</button></div>
+    </div>
+  </div>
 
 <script type="module">
-    // *** CÓDIGO JAVASCRIPT UNIFICADO ***
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; 
+  const firebaseConfig = {
+    apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
+    authDomain: "reservas-tracos-culturais.firebaseapp.com",
+    databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
+    projectId: "reservas-tracos-culturais",
+    storageBucket: "reservas-tracos-culturais.appspot.com",
+    messagingSenderId: "53243907823",
+    appId: "1:53243907823:web:1eee06470fe6554f0b551a"
+  };
 
-    // Sua Configuração Exata do Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCmuuPAX68dOcESWMFdynI56j_GYkosEmg",
-      authDomain: "reservas-tracos-culturais.firebaseapp.com",
-      databaseURL: "https://reservas-tracos-culturais-default-rtdb.firebaseio.com",
-      projectId: "reservas-tracos-culturais",
-      storageBucket: "reservas-tracos-culturais.appspot.com",
-      messagingSenderId: "53243907823",
-      appId: "1:53243907823:web:1eee06470fe6554f0b551a"
-    };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app); 
-    
-    // Elementos DOM
-    const dashboardContent = document.getElementById('dashboard-content');
-    const loginScreen = document.getElementById('login-screen');
-    const errorMessageDiv = document.getElementById('error-message');
-    const tbody = document.querySelector('#reservasTable tbody');
-    const loadingDiv = document.getElementById('loading');
-    
-    // SPANS DE CONTADOR DE MESAS
-    const totalReservasSpan = document.getElementById('totalReservas');
-    const totalMesasPagasSpan = document.getElementById('totalMesasPagas');
-    
-    // SPANS DE VALOR TOTAL
-    const valorTotalGeralSpan = document.getElementById('valorTotalGeral');
-    const valorTotalArrecadadoSpan = document.getElementById('valorTotalArrecadado');
-    
-    // NOVO SPAN E BOTÃO PARA CADEIRAS EXTRAS
-    const totalCadeirasExtrasSpan = document.getElementById('totalCadeirasExtras');
-    const filterButton = document.getElementById('filter-extra-chairs-button');
-    // FIM NOVOS ELEMENTOS
-    
-    const searchInput = document.getElementById('search-input');
-    const headers = document.querySelectorAll('#reservasTable th.sortable');
-    const formaPagamentoSelect = document.getElementById('editFormaPagamento');
-    const outrosDetalheInput = document.getElementById('editOutrosDetalhe');
-    const userInfoDiv = document.getElementById('user-info');
-    const saudacaoSpan = document.getElementById('saudacao-nome');
-    const profileImg = document.getElementById('profile-img');
-    
-    let dadosAgrupados = [];
-    let sortColumn = 7; 
-    let sortDirection = 'desc';
-    
-    // NOVO: VARIÁVEL DE ESTADO DO FILTRO
-    let isFiltrandoCadeirasExtras = false; 
-    
-    const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
-    
-    // Array de labels (usado no mobile view)
-    const tableLabels = [
-        'MESA(S)', 'RESPONSÁVEL', 'TELEFONE', 'ALUNO / TURMA', 
-        'VALOR (R$)', 'PAGAMENTO', 'CADEIRAS EXTRAS', 'DATA/HORA', 
-        'STATUS', 'AÇÃO'
-    ];
+  const tbody = document.querySelector('#reservasTable tbody');
+  const loadingDiv = document.getElementById('loading');
+  const searchInput = document.getElementById('search-input');
+  const formaPagamentoSelect = document.getElementById('editFormaPagamento');
+  const outrosDetalheInput = document.getElementById('editOutrosDetalhe');
+  const PIX_CHAVE = "45.701.401/0001-07";
+  const PIX_NOME = "Banco Cora - Colégio Antoni Gaudi";
+  const EVENTO_NOME = "Traços Culturais";
+  const LOCAL_EVENTO = "Quadra IF Baiano - Campus Catu";
+  const DATA_EVENTO = "informe a data e horário oficiais do evento";
+  const NUMERO_SECRETARIA = "5571999183320";
+  const VALOR_MESA = 150;
+  const VALOR_CADEIRA = 10;
+  const FIXED_PAYMENT_OPTIONS = ['Pix', 'Cartao Credito', 'Cartao Debito', 'Dinheiro'];
 
+  let dadosAgrupados = [];
+  let abaAtual = 'todas';
+  let isFiltrandoCadeirasExtras = false;
+  let sortColumn = 7;
+  let sortDirection = 'desc';
 
-    // ====================================================
-    // 1. LÓGICA DE AUTENTICAÇÃO (CONTROLE DE TELAS)
-    // ====================================================
-    
-    // Mostra a tela de login primeiro
-    loginScreen.style.display = 'flex';
-    dashboardContent.style.display = 'none';
+  const labels = ['MESA(S)','RESPONSÁVEL','TELEFONE','ALUNO/TURMA','VALOR','PAGAMENTO','CADEIRAS','DATA/HORA','STATUS','AÇÕES'];
+  const money = v => `R$ ${(Number(v)||0).toFixed(2).replace('.', ',')}`;
+  const onlyNum = v => (v || '').toString().replace(/[^0-9]/g, '');
+  const zapLink = (telefone, msg) => `https://wa.me/55${onlyNum(telefone)}?text=${encodeURIComponent(msg)}`;
+  const adminZap = msg => `https://wa.me/${NUMERO_SECRETARIA}?text=${encodeURIComponent(msg)}`;
+  const statusLabel = st => st === 'paga' ? 'PAGA' : st === 'cancelamento-solicitado' ? 'CANCELAMENTO SOLICITADO' : st === 'cancelamento-aprovado' ? 'CANCELAMENTO APROVADO' : 'PENDENTE';
 
-    // 🚨🚨🚨 BLOCO DE CONFIGURAÇÃO DE NOME E FOTO 🚨🚨🚨
-    // Mapeamento de E-mail para Nome de Exibição
-    const userDisplayNames = {
-        "SEU.EMAIL.AQUI@escola.com.br": "SEU NOME COMPLETO AQUI", 
-        "financeiro@escola.com.br": "Financeiro",   
-        "admin@escola.com.br": "Administrador"       
-    };
-    
-    // Mapeamento de E-mail para URL da Foto (Use URLs públicas, como do Imgur, Google Drive, ou seu próprio servidor)
-    const userProfilePhotos = {
-        "SEU.EMAIL.AQUI@escola.com.br": "URL_DA_SUA_FOTO_AQUI.jpg", 
-        "financeiro@escola.com.br": "https://i.imgur.com/FinanceiroDefault.png", 
-        "admin@escola.com.br": "https://i.imgur.com/AdminDefault.png"       
-    };
-    // 🚨🚨🚨 FIM DO BLOCO DE CONFIGURAÇÃO 🚨🚨🚨
-    
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Usuário logado: Esconde login, mostra dashboard
-            loginScreen.style.display = 'none';
-            dashboardContent.style.display = 'block'; 
-            
-            // --- Lógica de Personalização ---
-            const email = user.email;
-            
-            // 1. Nome de Exibição
-            let nomeDisplay = userDisplayNames[email] || email.split('@')[0];
-            if (nomeDisplay === email.split('@')[0]) {
-                 nomeDisplay = nomeDisplay.replace('.', ' ');
-                 nomeDisplay = nomeDisplay.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-            }
-            saudacaoSpan.textContent = nomeDisplay;
-            
-            // 2. Foto de Perfil
-            const fotoUrl = userProfilePhotos[email] || 'https://i.imgur.com/p9vF6qj.png'; // Fallback para ícone genérico se não mapeado
-            profileImg.src = fotoUrl;
-            
-            userInfoDiv.style.display = 'flex'; 
-            
-            // Inicia o carregamento dos dados
-            iniciarCarregamentoDeDados(); 
-            
-        } else {
-            // Usuário não logado: Mostra login, esconde dashboard
-            dashboardContent.style.display = 'none';
-            loginScreen.style.display = 'flex';
-            loadingDiv.textContent = 'Carregando dados...';
-        }
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dashboard-content').style.display = 'none';
+
+  onAuthStateChanged(auth, (user) => {
+    if(user){
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard-content').style.display = 'block';
+      document.getElementById('saudacao-nome').textContent = (user.email || 'Coordenação').split('@')[0].replace(/[._]/g,' ');
+      iniciarCarregamentoDeDados();
+    }else{
+      document.getElementById('dashboard-content').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+
+  window.login = async function(){
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    document.getElementById('error-message').textContent = '';
+    try{ await signInWithEmailAndPassword(auth,email,password); }
+    catch(e){ document.getElementById('error-message').textContent = '❌ E-mail ou senha incorretos.'; }
+  }
+  window.fazerLogout = async function(){ if(confirm('Deseja sair do painel?')) await signOut(auth); }
+
+  function iniciarCarregamentoDeDados(){
+    onValue(ref(db,'reservas'), snapshot => {
+      loadingDiv.style.display = 'none';
+      const data = snapshot.val() || {};
+      const map = new Map();
+      Object.keys(data).forEach(mesaId => {
+        const r = data[mesaId] || {};
+        const chave = (r.mesasSelecionadas && Array.isArray(r.mesasSelecionadas)) ? r.mesasSelecionadas.slice().sort().join('|') : `${r.nome||''}-${r.aluno||''}-${r.data||''}-${r.horario||''}`;
+        const valorTotal = Number(r.valorTotal) || ((r.mesasSelecionadas?.length || 1) * VALOR_MESA + (Number(r.cadeirasExtras)||0) * VALOR_CADEIRA);
+        if(!map.has(chave)) map.set(chave,{...r, mesas:[], status:r.status||'pendente', valorTotal, cadeirasExtras:Number(r.cadeirasExtras)||0, formaPagamento:r.formaPagamento||'Pix'});
+        map.get(chave).mesas.push(mesaId);
+      });
+      dadosAgrupados = Array.from(map.values()).map(r => ({...r, mesas:r.mesas.sort((a,b)=>parseInt(a)-parseInt(b))}));
+      atualizarFiltroTurmas();
+      ordenarTabela(sortColumn, sortDirection, true);
+    }, error => { loadingDiv.textContent = 'Erro ao buscar dados: ' + error.message; });
+  }
+
+  function atualizarFiltroTurmas(){
+    const select = document.getElementById('filtro-turma');
+    const atual = select.value;
+    const turmas = [...new Set(dadosAgrupados.map(r=>r.turma).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option value="${t}">${t}</option>`).join('');
+    select.value = atual;
+  }
+
+  window.setAba = function(aba){
+    abaAtual = aba;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===aba));
+    filtrarTabela();
+  }
+
+  window.toggleFiltrarCadeirasExtras = function(){
+    isFiltrandoCadeirasExtras = !isFiltrandoCadeirasExtras;
+    document.getElementById('filter-extra-chairs-button').classList.toggle('active', isFiltrandoCadeirasExtras);
+    filtrarTabela();
+  }
+
+  function passaFiltros(r){
+    const termo = searchInput.value.toLowerCase().trim();
+    const turma = document.getElementById('filtro-turma').value;
+    const pagamento = document.getElementById('filtro-pagamento').value;
+    const texto = `${r.mesas.join(' ')} ${r.nome||''} ${r.telefone||''} ${r.aluno||''} ${r.turma||''} ${r.status||''}`.toLowerCase();
+    if(abaAtual !== 'todas' && r.status !== abaAtual) return false;
+    if(termo && !texto.includes(termo)) return false;
+    if(turma && r.turma !== turma) return false;
+    if(pagamento && !(r.formaPagamento||'').includes(pagamento)) return false;
+    if(isFiltrandoCadeirasExtras && !(Number(r.cadeirasExtras)>0)) return false;
+    return true;
+  }
+
+  window.filtrarTabela = function(){ renderizarTabela(dadosAgrupados); }
+
+  window.ordenarTabela = function(index, forcedDirection, silent){
+    if(!silent && sortColumn === index) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    else { sortColumn = index; sortDirection = forcedDirection || sortDirection; }
+    dadosAgrupados.sort((a,b)=>{
+      let av,bv;
+      if(index===0){av=parseInt(a.mesas[0]);bv=parseInt(b.mesas[0]);}
+      else if(index===1){av=a.nome||'';bv=b.nome||'';}
+      else if(index===2){av=a.telefone||'';bv=b.telefone||'';}
+      else if(index===3){av=a.aluno||'';bv=b.aluno||'';}
+      else if(index===4){av=Number(a.valorTotal)||0;bv=Number(b.valorTotal)||0;}
+      else if(index===5){av=a.formaPagamento||'';bv=b.formaPagamento||'';}
+      else if(index===6){av=Number(a.cadeirasExtras)||0;bv=Number(b.cadeirasExtras)||0;}
+      else {av=new Date(`${(a.data||'').split('/').reverse().join('-')}T${a.horario||'00:00'}:00`).getTime()||0;bv=new Date(`${(b.data||'').split('/').reverse().join('-')}T${b.horario||'00:00'}:00`).getTime()||0;}
+      if(typeof av === 'number' && typeof bv === 'number') return sortDirection==='asc' ? av-bv : bv-av;
+      return sortDirection==='asc' ? av.toString().localeCompare(bv.toString()) : bv.toString().localeCompare(av.toString());
     });
-
-    // Função de Login 
-    window.login = async function() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        errorMessageDiv.textContent = ''; 
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            // O onAuthStateChanged será acionado e mostrará o dashboard.
-        } catch (error) {
-            console.error("Erro de Login:", error);
-            
-            let message = "❌ Erro desconhecido. Tente novamente.";
-
-            switch (error.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    message = "❌ E-mail ou senha incorretos. Verifique suas credenciais.";
-                    break;
-                case 'auth/invalid-email':
-                    message = "❌ O formato do e-mail é inválido.";
-                    break;
-                default:
-                    message = "❌ Erro ao tentar conectar. Verifique o console para detalhes.";
-            }
-
-            errorMessageDiv.textContent = message;
-        }
-    }
-
-    // Função de Logout
-    window.fazerLogout = async function() {
-        if(confirm("Tem certeza que deseja sair do Painel de Gestão?")) {
-            try {
-                await signOut(auth);
-                // O onAuthStateChanged fará a transição para a tela de login.
-            } catch (error) {
-                alert("❌ Erro ao fazer logout: " + error.message);
-                console.error("Erro de Logout:", error);
-            }
-        }
-    }
-
-    // ====================================================
-    // 2. FUNÇÕES DO DASHBOARD
-    // ====================================================
-    
-    function iniciarCarregamentoDeDados() {
-        onValue(ref(db, "reservas"), (snapshot) => {
-            loadingDiv.style.display = 'none';
-            dadosAgrupados = [];
-
-            const reservasData = snapshot.val();
-            console.log("Firebase - nós lidos:", snapshot.size || (reservasData ? Object.keys(reservasData).length : 0));
-            console.log("Amostra dos dados:", reservasData ? Object.keys(reservasData).slice(0,5).map(k=>({k, v: reservasData[k]})) : reservasData);
-
-            if (!reservasData) {
-                renderizarTabela([]);
-                return;
-            }
-
-            const reservasMap = new Map();
-
-            for (const mesaId in reservasData) {
-                const reserva = reservasData[mesaId];
-                if (!reserva.status) reserva.status = 'pendente'; 
-                
-                const formaPagamento = reserva.formaPagamento || 'Pix';
-                const telefone = reserva.telefone || 'semtel'; 
-                // Garantir que cadeirasExtras seja um número
-                const cadeirasExtras = parseInt(reserva.cadeirasExtras) || 0; 
-                
-                // Garantir que valorTotal seja um número, com fallback se necessário
-                const valorTotal = typeof reserva.valorTotal === 'number' ? reserva.valorTotal : parseFloat(reserva.valorTotal) || 0;
-
-                // ---------- CORREÇÃO: chave simplificada e robusta ----------
-                // Antes: incluía muitos campos que quebravam o agrupamento quando ausentes/variavam.
-                // Agora: agrupa por responsável+aluno+data+horário, que são os campos estáveis.
-                const mesasLista = reserva.mesasSelecionadas ? reserva.mesasSelecionadas.sort().join('|') : 'semmesas';
-                const chaveReserva = `${reserva.nome || ''}-${reserva.aluno || ''}-${reserva.data || ''}-${reserva.horario || ''}`;
-                // ------------------------------------------------------------
-
-                if (!reservasMap.has(chaveReserva)) {
-                    reservasMap.set(chaveReserva, {
-                        ...reserva,
-                        valorTotal: valorTotal, // Usa o valor normalizado
-                        formaPagamento: formaPagamento, 
-                        telefone: telefone === 'semtel' ? null : telefone,
-                        mesas: [mesaId],
-                        cadeirasExtras: cadeirasExtras // Usa o valor numérico
-                    });
-                } else {
-                    reservasMap.get(chaveReserva).mesas.push(mesaId);
-                }
-            }
-            
-            dadosAgrupados = Array.from(reservasMap.values());
-            // ATUALIZA O FILTRO DE TURMAS APÓS CARREGAR OS DADOS
-            atualizarFiltroTurmas();
-            ordenarTabela(sortColumn, sortDirection);
-
-        }, (error) => {
-            loadingDiv.textContent = `❌ ERRO FATAL ao buscar dados: ${error.message}.`;
-            console.error("Firebase Error:", error);
-        });
-    }
-
-    // FUNÇÃO PARA ATUALIZAR O FILTRO DE TURMAS
-    function atualizarFiltroTurmas() {
-        const select = document.getElementById("filtro-turma");
-        const turmas = new Set();
-
-        // Coleta todas as turmas únicas dos dados agrupados
-        dadosAgrupados.forEach(reserva => {
-            if (reserva.turma) {
-                turmas.add(reserva.turma);
-            }
-        });
-
-        // Limpa e recria as opções
-        select.innerHTML = "<option value=''>Todas as turmas</option>";
-        [...turmas].sort().forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t;
-            select.appendChild(opt);
-        });
-    }
-
-    window.toggleOutrosField = function() {
-        if (formaPagamentoSelect.value === 'Outros') {
-            outrosDetalheInput.style.display = 'block';
-            outrosDetalheInput.focus();
-        } else {
-            outrosDetalheInput.style.display = 'none';
-        }
-    }
-    
-    // FUNÇÃO DE FILTRO DE TABELA ATUALIZADA (com filtro de turmas e cadeiras extras)
-    window.filtrarTabela = function() {
-        const termo = searchInput.value.toLowerCase();
-        const filtroTurma = document.getElementById('filtro-turma').value;
-        const linhas = tbody.querySelectorAll('tr');
-
-        let mesasVisiveisGeral = 0;
-        let mesasVisiveisPagas = 0; 
-        let valorVisivelGeral = 0; 
-        let valorVisivelArrecadado = 0; 
-        let cadeirasVisiveis = 0;
-
-        linhas.forEach(row => {
-            const textoLinha = row.textContent.toLowerCase();
-            const isVisibleBySearch = textoLinha.includes(termo);
-            
-            // Encontra a reserva correspondente
-            const mesaPrincipalId = row.dataset.mesa;
-            const reserva = mesaPrincipalId ? dadosAgrupados.find(r => Array.isArray(r.mesas) ? r.mesas.includes(mesaPrincipalId) : r.mesas[0] === mesaPrincipalId) : null;
-            
-            const cadeirasExtrasReserva = reserva ? (reserva.cadeirasExtras || 0) : 0;
-            
-            // Filtro por turma
-            const isVisibleByTurma = !filtroTurma || (reserva && reserva.turma === filtroTurma);
-            
-            // Filtro por cadeiras extras
-            const isVisibleByExtraChairsFilter = !isFiltrandoCadeirasExtras || (isFiltrandoCadeirasExtras && cadeirasExtrasReserva > 0);
-            
-            const isVisible = isVisibleBySearch && isVisibleByTurma && isVisibleByExtraChairsFilter;
-            
-            row.style.display = isVisible ? '' : 'none';
-            
-            if(isVisible) {
-                if (reserva) {
-                    const count = reserva.mesas.length;
-                    const valor = reserva.valorTotal || 0; 
-
-                    mesasVisiveisGeral += count;
-                    valorVisivelGeral += valor;
-                    cadeirasVisiveis += cadeirasExtrasReserva;
-
-                    if (reserva.status === 'paga') {
-                        mesasVisiveisPagas += count; 
-                        valorVisivelArrecadado += valor;
-                    }
-                }
-            }
-        });
-        
-        // Atualiza os spans de Mesas e Valores
-        totalReservasSpan.textContent = mesasVisiveisGeral.toString();
-        totalMesasPagasSpan.textContent = mesasVisiveisPagas.toString();
-        totalCadeirasExtrasSpan.textContent = cadeirasVisiveis.toString();
-        
-        valorTotalGeralSpan.textContent = `R$ ${valorVisivelGeral.toFixed(2).replace('.', ',')}`;
-        valorTotalArrecadadoSpan.textContent = `R$ ${valorVisivelArrecadado.toFixed(2).replace('.', ',')}`;
-    }
-
-    // NOVA FUNÇÃO: Alternar o filtro de cadeiras extras
-    window.toggleFiltrarCadeirasExtras = function() {
-        isFiltrandoCadeirasExtras = !isFiltrandoCadeirasExtras; 
-        
-        if (isFiltrandoCadeirasExtras) {
-            filterButton.style.backgroundColor = '#2ecc71'; // Verde para indicar ativo
-            filterButton.textContent = '✅ Cadeiras Extras (Ativo)';
-        } else {
-            filterButton.style.backgroundColor = '#e67e22'; // Laranja original
-            filterButton.textContent = '🪑 Filtrar Cadeiras Extras';
-        }
-        
-        // Aplica o filtro imediatamente
-        filtrarTabela(); 
-    }
-
-    function ordenarTabela(index, direction) {
-        // Remove classes dos cabeçalhos sortáveis
-        document.querySelectorAll('#reservasTable th.sortable').forEach(h => {
-            h.classList.remove('sort-asc', 'sort-desc');
-        });
-
-        // Marca corretamente o cabeçalho por data-column-index
-        const headerToMark = document.querySelector(`#reservasTable th[data-column-index="${index}"]`);
-        if (headerToMark) {
-            headerToMark.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
-        }
-
-        dadosAgrupados.sort((a, b) => {
-            let aVal, bVal;
-            
-            switch (index) {
-                case 0: aVal = parseInt(a.mesas[0]); bVal = parseInt(b.mesas[0]); break; 
-                case 1: aVal = a.nome || ''; bVal = b.nome || ''; break; 
-                case 2: aVal = a.telefone || ''; bVal = b.telefone || ''; break; 
-                case 3: aVal = a.aluno || ''; bVal = b.aluno || ''; break; 
-                case 4: aVal = Number(a.valorTotal || 0); bVal = Number(b.valorTotal || 0); break; // Ordena por Valor
-                case 5: aVal = a.formaPagamento || 'Pix'; bVal = b.formaPagamento || 'Pix'; break; 
-                case 6: aVal = parseInt(a.cadeirasExtras || 0); bVal = parseInt(b.cadeirasExtras || 0); break; 
-                case 7: 
-                default:
-                    // Ordenação por Data/Hora 
-                    // Proteção para formatos ausentes
-                    const aDataStr = `${(a.data||'').split('/').reverse().join('-') || ''}T${a.horario || '00:00'}:00`;
-                    const bDataStr = `${(b.data||'').split('/').reverse().join('-') || ''}T${b.horario || '00:00'}:00`;
-                    const aDate = new Date(aDataStr);
-                    const bDate = new Date(bDataStr);
-                    if (!isNaN(aDate) && !isNaN(bDate)) {
-                        return direction === 'asc' ? aDate - bDate : bDate - aDate;
-                    } else {
-                        // fallback para strings se data inválida
-                        aVal = (a.data || '') + ' ' + (a.horario || '');
-                        bVal = (b.data || '') + ' ' + (b.horario || '');
-                    }
-            }
-
-            // Se aVal/bVal estiverem definidas acima como valor simples:
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return direction === 'asc' ? aVal - bVal : bVal - aVal;
-            } else {
-                aVal = aVal || '';
-                bVal = bVal || '';
-                return direction === 'asc' ? aVal.toString().localeCompare(bVal.toString()) : bVal.toString().localeCompare(aVal.toString());
-            }
-        });
-
-        renderizarTabela(dadosAgrupados);
-    }
-    
-    // Função para gerar a mensagem de Lembrete PIX 
-    function getMensagemLembretePix(reserva) {
-        const PIX_CHAVE = "45.701.401/0001-07";
-        const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-        const valorTexto = `R$ ${reserva.valorTotal.toFixed(2).replace('.', ',')}`;
-
-        const mensagem = `
-*LEMBRETE DE RESERVA - FESTA DA FAMÍLIA*
-
-Olá, ${reserva.nome}!
-
-Identificamos a sua reserva das *Mesas ${mesasTexto}* no valor de *${valorTexto}* para o nosso evento.
-
-O prazo para a confirmação via PIX é de *24 horas*. Se você ainda não pagou, segue a chave PIX novamente:
-
-*CHAVE PIX CNPJ:* ${PIX_CHAVE}
-*Nome:* Colégio Antoni Gaudi
-
-*Lembrete:* Sua reserva será EXCLUIDA se o pagamento não for confirmado a tempo.
-*Por favor, assim que o pagamento for efetuado, envie-nos o comprovante.*
-Agradecemos e aguardamos a sua confirmação!
-        `.trim();
-        return mensagem;
-    }
-
-    // FUNÇÃO renderizarTabela MODIFICADA PARA SOMAR VALORES E CADEIRAS EXTRAS
-    function renderizarTabela(reservas) {
-        tbody.innerHTML = '';
-        let totalMesasGeral = 0; 
-        let totalMesasPagas = 0; 
-        let valorTotalGeral = 0; 
-        let valorTotalArrecadado = 0; 
-        let totalCadeirasExtras = 0; // NOVO: Acumulador de Cadeiras Extras
-        
-        const labels = tableLabels; 
-
-        reservas.forEach(reserva => {
-            const row = tbody.insertRow();
-            
-            const numMesas = reserva.mesas.length;
-            const valorReserva = reserva.valorTotal || 0; 
-            const cadeirasExtrasReserva = reserva.cadeirasExtras || 0;
-
-            totalMesasGeral += numMesas;
-            valorTotalGeral += valorReserva;
-            totalCadeirasExtras += cadeirasExtrasReserva; // Acumula o total de cadeiras
-
-            const status = reserva.status || 'pendente';
-            
-            if (status === 'paga') {
-                totalMesasPagas += numMesas; 
-                valorTotalArrecadado += valorReserva; 
-            }
-
-            // 0. Mesa(s) (COM DESTAQUE)
-            const mesasCell = row.insertCell();
-            const mesasTexto = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-            mesasCell.innerHTML = `<span class="mesa-highlight">${mesasTexto}</span>`; 
-            mesasCell.setAttribute('data-label', labels[0]);
-
-            // 1. Responsável
-            const responsavelCell = row.insertCell();
-            responsavelCell.textContent = reserva.nome; 
-            responsavelCell.setAttribute('data-label', labels[1]);
-
-            // 2. Telefone
-            const telCell = row.insertCell(); 
-            telCell.setAttribute('data-label', labels[2]);
-            const telefoneFormatado = reserva.telefone ? reserva.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') : 'N/A';
-            
-            telCell.innerHTML = `
-              ${telefoneFormatado} 
-              ${reserva.telefone ? `<a href="https://wa.me/55${reserva.telefone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(getMensagemLembretePix(reserva))}" target="_blank" class="pix-reminder-button">
-                Lembrete PIX
-              </a>` : ''}
-            `;
-            
-            // 3. Aluno / Turma
-            const alunoTurmaCell = row.insertCell();
-            alunoTurmaCell.textContent = `${reserva.aluno} (${reserva.turma})`; 
-            alunoTurmaCell.setAttribute('data-label', labels[3]);
-
-            // 4. Valor (R$)
-            const valorCell = row.insertCell();
-            valorCell.textContent = `R$ ${valorReserva.toFixed(2).replace('.', ',')}`; 
-            valorCell.setAttribute('data-label', labels[4]);
-
-            // 5. Pagamento
-            const pagamentoCell = row.insertCell();
-            const formaPagamento = reserva.formaPagamento || 'Pix';
-            pagamentoCell.textContent = formaPagamento; 
-            pagamentoCell.setAttribute('data-label', labels[5]);
-
-            // 6. Cadeiras Extras (COM DESTAQUE)
-            const cadeirasCell = row.insertCell();
-            const cadeirasTexto = cadeirasExtrasReserva.toString();
-            cadeirasCell.innerHTML = `<span class="cadeiras-highlight">${cadeirasTexto}</span>`; 
-            cadeirasCell.setAttribute('data-label', labels[6]);
-            
-            // 7. Data/Hora (Índice ajustado)
-            const dataHoraCell = row.insertCell();
-            dataHoraCell.textContent = `${reserva.data} ${reserva.horario}`; 
-            dataHoraCell.setAttribute('data-label', labels[7]);
-            
-            // 8. Status (Índice ajustado)
-            const statusCell = row.insertCell();
-            statusCell.setAttribute('data-label', labels[8]);
-            
-            let statusClass = 'status-pendente'; 
-            let statusText = 'PENDENTE (PIX)';   
-
-            if (status === 'paga') {
-                statusClass = 'status-confirmado';
-                statusText = 'PAGA (CONFIRMADO)';
-            } else if (status === 'cancelamento-solicitado') {
-                statusClass = 'status-cancelamento';
-                statusText = 'CANCELAMENTO SOLICITADO';
-            }
-
-            statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
-
-            // 9. Ação (Índice ajustado)
-            const actionCell = row.insertCell();
-            actionCell.setAttribute('data-label', labels[9]); 
-            const mesaPrincipal = reserva.mesas[0];
-            
-            // ---------- CORREÇÃO: armazenar mesaPrincipal no dataset para busca/filtragem ----------
-            row.dataset.mesa = mesaPrincipal;
-            // ------------------------------------------------------------------------------------
-            
-            let actionHTML = '';
-            
-            actionHTML += `<button class="action-button delete-button" onclick="cancelarReserva('${mesaPrincipal}')">❌ Cancelar / Estornar</button>`;
-            actionHTML += `<button class="action-button edit-button" onclick="abrirModalEdicao('${mesaPrincipal}')">✏️ Editar</button>`;
-
-            if (status === 'pendente' || status === 'cancelamento-solicitado') { 
-                actionHTML += `<button class="action-button confirm-button" onclick="confirmarPagamento('${mesaPrincipal}')">✅ Confirmar</button>`;
-            } 
-            
-            if (status === 'paga') {
-                actionHTML += `<button class="action-button" style="background-color: #8e44ad; margin-top: 5px;" onclick="enviarConfirmacaoFinal('${mesaPrincipal}')">✉️ Confirmação Final</button>`; 
-            }
-            
-            actionCell.innerHTML = actionHTML;
-        });
-        
-        // ATUALIZAÇÃO DOS SPANS DE CONTADORES E VALORES GERAIS
-        totalReservasSpan.textContent = totalMesasGeral.toString();
-        totalMesasPagasSpan.textContent = totalMesasPagas.toString();
-        totalCadeirasExtrasSpan.textContent = totalCadeirasExtras.toString(); // NOVO: Atualiza o total de cadeiras extras
-        
-        valorTotalGeralSpan.textContent = `R$ ${valorTotalGeral.toFixed(2).replace('.', ',')}`;
-        valorTotalArrecadadoSpan.textContent = `R$ ${valorTotalArrecadado.toFixed(2).replace('.', ',')}`;
-        
-        // Filtra para garantir que apenas os resultados do filtro/busca (se houver) sejam mostrados
-        filtrarTabela(); 
-    }
-
-    // ====================================================
-    // 3. FUNÇÕES DE AÇÃO (CONFIRMAR, EDITAR, CANCELAR)
-    // ====================================================
-
-    window.confirmarPagamento = async function(mesaPrincipalId) {
-        const confirmacao = confirm(`Tem certeza que deseja CONFIRMAR o pagamento para a reserva da MESA ${mesaPrincipalId}?`);
-        
-        if (confirmacao) {
-            try {
-                const reservaParaConfirmar = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-                
-                if (!reservaParaConfirmar) {
-                    alert('❌ Erro: Reserva não encontrada localmente.');
-                    return;
-                }
-
-                const mesasIds = reservaParaConfirmar.mesas;
-                const updates = {};
-                
-                mesasIds.forEach(mesaId => {
-                    updates[`/reservas/${mesaId}/status`] = 'paga';
-                });
-
-                await update(ref(db), updates); 
-                
-                alert(`✅ Pagamento CONFIRMADO para as mesas: ${mesasIds.join(', ')}.`);
-
-            } catch (error) {
-                alert(`❌ Erro ao confirmar pagamento: ${error.message}`);
-                console.error("Erro no Firebase:", error);
-            }
-        }
-    }
-
-
-    // FUNÇÃO: CANCELAR E ESTORNAR 
-    window.cancelarReserva = async function(mesaPrincipalId) {
-        // 1. Encontra a reserva para coletar os dados
-        const reservaParaCancelar = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reservaParaCancelar) {
-            alert('❌ Erro: Reserva não encontrada localmente.');
-            return;
-        }
-        
-        const mesasIds = reservaParaCancelar.mesas;
-        const mesasTexto = mesasIds.join(', ');
-
-        // 2. Confirmação
-        const confirmacao = confirm(
-            `Tem certeza que deseja CANCELAR a reserva das mesas ${mesasTexto}? \n\n` +
-            `⚠️ Esta ação irá DELETAR a reserva do sistema e DEVE ser usada para processar o ESTORNO/DEVOLUÇÃO do valor.`
-        );
-        
-        if (confirmacao) {
-            try {
-                const updates = {};
-                
-                // Marca as mesas para exclusão (define como 'null')
-                mesasIds.forEach(mesaId => {
-                    updates[`/reservas/${mesaId}`] = null;
-                });
-
-                // Executa a exclusão atômica no Firebase
-                await update(ref(db), updates); 
-                
-                alert(`❌ Reservas das mesas ${mesasTexto} CANCELADAS e liberadas com sucesso! Fazer ESTORNO.`);
-
-                // 3. Notificação (Ação para o ADM)
-                enviarNotificacaoCancelamento(reservaParaCancelar);
-
-            } catch (error) {
-                alert(`❌ Erro ao cancelar reserva: ${error.message}`);
-                console.error("Erro no Firebase:", error);
-            }
-        }
-    }
-
-    // Função para enviar o WhatsApp de Estorno (mantida da versão anterior)
-    function enviarNotificacaoCancelamento(reserva) {
-        const mesas = reserva.mesas.join(', ');
-        const valor = reserva.valorTotal.toFixed(2).replace('.', ',');
-        const status = reserva.status === 'paga' ? 'PAGA' : 'PENDENTE'; 
-        const telefone = reserva.telefone || 'N/A';
-
-        const mensagem = `
-*CANCELAMENTO DE RESERVA/ESTORNO* 🚫
----
-*AÇÃO NECESSÁRIA: ESTORNO!*
----
-*Responsável:* ${reserva.nome}
-*Telefone:* ${telefone}
-*Aluno/Turma:* ${reserva.aluno} (${reserva.turma})
-*Mesas:* ${mesas}
-*Valor a Estornar:* R$ ${valor}
-*Status Original:* ${status}
-
-*ATENÇÃO:* Esta reserva foi deletada do sistema e o estorno deve ser processado.
-        `.trim().replace(/\n/g, '%0A');
-
-        const numeroFinanceiro = '5571999183320'; 
-
-        window.open(`https://wa.me/${numeroFinanceiro}?text=${mensagem}`, '_blank');
-    }
-    
-    // FUNÇÃO: Enviar Confirmação Final ao Cliente
-    window.enviarConfirmacaoFinal = function(mesaPrincipalId) {
-        const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reserva || reserva.status !== 'paga') { 
-            alert("❌ Erro: Apenas reservas PAGAS (Status 'Paga') podem receber o envio final.");
-            return;
-        }
-        
-        // VALORES FIXOS (Ajuste se necessário)
-        const localEvento = "QUADRA IF BAIANO - CAMPUS CATU";
-        const dataEvento = "06 de Dezembro, 19:00h";
-        
-        const mesasTexto = reserva.mesas.join(', ');
-        const cadeirasTexto = reserva.cadeirasExtras > 0 ? ` + ${reserva.cadeirasExtras} Cadeira(s) Extra(s)` : '';
-
-        const mensagemFinal = `
-*PRESENÇA CONFIRMADA!* *FESTA DA FAMÍLIA*
-
-Olá, ${reserva.nome}!
-
-Obrigado por confirmar sua reserva. Sua presença e a de seus convidados estão garantidas!
-
-*Detalhes da Sua Reserva:*
-*Responsável:* ${reserva.nome}
-*Aluno:* ${reserva.aluno} (${reserva.turma})
-*Mesa(s) Reservada(s):* ${mesasTexto}${cadeirasTexto}
-*Status:* PAGAMENTO CONFIRMADO
-
-*Detalhes do Evento:*
-*Local:* ${localEvento}
-*Data/Hora:* ${dataEvento}
-
-Esperamos por vocês! Pedimos a gentileza de chegar com 15 minutos de antecedência.
-        `.trim().replace(/\n/g, '%0A');
-
-        let telefoneDestino = reserva.telefone;
-
-        if (!telefoneDestino) {
-            // Se o telefone não estiver nos dados, pede ao administrador
-            const inputTel = prompt("O telefone não foi encontrado. Por favor, digite o número do WhatsApp do responsável (apenas números, com DDD):");
-            if (inputTel && inputTel.match(/^[0-9]+$/)) {
-                 telefoneDestino = inputTel.replace(/[^0-9]/g, '');
-            } else {
-                alert("❌ Número de telefone inválido ou cancelado.");
-                return;
-            }
-        }
-        
-        // Envia APENAS a mensagem de texto
-        window.open(`https://wa.me/55${telefoneDestino}?text=${mensagemFinal}`, '_blank');
-    };
-    // FUNÇÕES DO MODAL DE EDIÇÃO 
-    window.abrirModalEdicao = function(mesaPrincipalId) {
-        const reserva = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        
-        if (!reserva) {
-            alert('❌ Reserva não encontrada para edição.');
-            return;
-        }
-
-        document.getElementById('editMesaPrincipalId').value = mesaPrincipalId;
-        document.getElementById('editMesas').textContent = reserva.mesas.sort((a, b) => parseInt(a) - parseInt(b)).join(', ');
-        
-        document.getElementById('editNome').value = reserva.nome || '';
-        document.getElementById('editTelefone').value = reserva.telefone || '';
-        document.getElementById('editAluno').value = reserva.aluno || '';
-        document.getElementById('editTurma').value = reserva.turma || '';
-        document.getElementById('editCadeirasExtras').value = reserva.cadeirasExtras || 0; 
-        
-        let formaPagamentoSalva = reserva.formaPagamento || 'Pix';
-        
-        // Trata números como string para o select
-        if (typeof formaPagamentoSalva !== 'string') {
-            formaPagamentoSalva = formaPagamentoSalva.toString();
-        }
-
-        if (FIXED_PAYMENT_OPTIONS.includes(formaPagamentoSalva)) {
-            formaPagamentoSelect.value = formaPagamentoSalva;
-            outrosDetalheInput.value = '';
-        } else {
-            formaPagamentoSelect.value = 'Outros';
-            outrosDetalheInput.value = formaPagamentoSalva;
-        }
-        
-        toggleOutrosField(); 
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    window.fecharModalEdicao = function() {
-        document.getElementById('editModal').style.display = 'none';
-    }
-
-    window.salvarEdicao = async function() {
-        const mesaPrincipalId = document.getElementById('editMesaPrincipalId').value;
-        const novoNome = document.getElementById('editNome').value;
-        const novoTelefone = document.getElementById('editTelefone').value.replace(/[^0-9]/g, ''); 
-        const novoAluno = document.getElementById('editAluno').value;
-        const novaTurma = document.getElementById('editTurma').value;
-        const novasCadeirasExtras = parseInt(document.getElementById('editCadeirasExtras').value) || 0; 
-        
-        let novaFormaPagamento = formaPagamentoSelect.value;
-        
-        if (novaFormaPagamento === 'Outros') {
-            novaFormaPagamento = outrosDetalheInput.value || 'Outros (não especificado)';
-        }
-
-        const reservaOriginal = dadosAgrupados.find(r => r.mesas[0] === mesaPrincipalId);
-        if (!reservaOriginal) return alert('❌ Erro interno: Reserva não encontrada.');
-
-        const mesasIds = reservaOriginal.mesas;
-        const updates = {};
-        
-        mesasIds.forEach(mesaId => {
-            updates[`/reservas/${mesaId}/nome`] = novoNome;
-            updates[`/reservas/${mesaId}/telefone`] = novoTelefone;
-            updates[`/reservas/${mesaId}/aluno`] = novoAluno;
-            updates[`/reservas/${mesaId}/turma`] = novaTurma;
-            updates[`/reservas/${mesaId}/formaPagamento`] = novaFormaPagamento;
-            updates[`/reservas/${mesaId}/cadeirasExtras`] = novasCadeirasExtras; 
-        });
-
-        try {
-            await update(ref(db), updates);
-            alert(`✅ Reserva das mesas ${mesasIds.join(', ')} editada com sucesso!`);
-            fecharModalEdicao();
-        } catch (error) {
-            alert(`❌ Erro ao salvar edição: ${error.message}`);
-            console.error("Erro no Firebase:", error);
-        }
-    }
-    
-    // ====================================================
-    // 4. FUNÇÃO DE EXPORTAÇÃO (PDF)
-    // ====================================================
-
-    window.exportarPDF = function() {
-        const { jsPDF } = window.jspdf;
-        // @ts-ignore
-        const doc = new jsPDF('landscape');
-
-        const tabela = document.getElementById('reservasTable');
-        // Captura apenas as linhas visíveis (aplicando o filtro atual)
-        const linhasVisiveis = Array.from(tabela.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
-        
-        if (linhasVisiveis.length === 0) {
-            alert("Não há dados visíveis para exportar.");
-            return;
-        }
-        
-        // Colunas a serem exportadas: Mesa, Responsável, Telefone, Aluno/Turma, Valor, Pagamento, Cadeiras Extras, Data/Hora, Status
-        const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent.trim()).slice(0, 9); // Pega 9 colunas
-
-        const dados = linhasVisiveis.map(row => {
-            const cells = Array.from(row.querySelectorAll('td'));
-            return cells.slice(0, 9).map((cell, index) => { // Pega 9 células
-                // A coluna Telefone (index 2) precisa do texto sem o link do WhatsApp
-                if (index === 2) { 
-                    const text = cell.firstChild ? cell.firstChild.textContent.trim() : cell.textContent.trim();
-                    return text.replace('N/A', '').trim();
-                }
-                return cell.textContent.trim();
-            }); 
-        });
-
-        doc.setFontSize(16);
-        doc.setTextColor(50, 50, 50); 
-        doc.text("Relatório de Reservas - Festa da Família", 140, 15, { align: "center" });
-        doc.setFontSize(10);
-        
-        let tituloRelatorio = `Reservas no Relatório: ${linhasVisiveis.length} transações`;
-        if (isFiltrandoCadeirasExtras) {
-            const totalCadeirasNoRelatorio = totalCadeirasExtrasSpan.textContent;
-            tituloRelatorio = `RELATÓRIO: Reservas com CADEIRAS EXTRAS (${totalCadeirasNoRelatorio} cadeiras)`;
-        }
-        
-        doc.text(tituloRelatorio, 140, 22, { align: "center" });
-        
-        // Adiciona o total de valor no PDF
-        const valorGeral = valorTotalGeralSpan.textContent;
-        const valorArrecadado = valorTotalArrecadadoSpan.textContent;
-        doc.text(`Total Geral VISÍVEL: ${valorGeral} | Total Arrecadado VISÍVEL (PAGO): ${valorArrecadado}`, 140, 26, { align: "center" });
-
-
-        doc.autoTable({
-            startY: 32, // Ajustado para dar espaço para o novo texto
-            head: [cabecalhos],
-            body: dados,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-            headStyles: { fillColor: [0, 123, 255], textColor: 255 } 
-        });
-        
-        let nomeArquivo = `Reservas_Tracos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
-        if (isFiltrandoCadeirasExtras) {
-            nomeArquivo = `Cadeiras_Extras_Relatorio_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
-        }
-
-        doc.save(`${nomeArquivo}.pdf`);
-    }
-
-  </script>
+    renderizarTabela(dadosAgrupados);
+  }
+
+  function renderizarTabela(lista){
+    tbody.innerHTML = '';
+    const visiveis = lista.filter(passaFiltros);
+    let totalMesas=0, pendentes=0, pagas=0, arrecadado=0, receber=0, cancel=0;
+    visiveis.forEach(r=>{
+      const mesasQtd = r.mesas.length;
+      const valor = Number(r.valorTotal)||0;
+      totalMesas += mesasQtd;
+      if(r.status==='paga'){pagas += mesasQtd; arrecadado += valor;}
+      else if(r.status==='cancelamento-solicitado' || r.status==='cancelamento-aprovado'){cancel += mesasQtd;}
+      else {pendentes += mesasQtd; receber += valor;}
+
+      const tr = tbody.insertRow(); tr.dataset.mesa = r.mesas[0];
+      const tel = onlyNum(r.telefone);
+      const cells = [
+        `<span class="mesa-tag">${r.mesas.join(', ')}</span>`,
+        r.nome || '-',
+        tel ? `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}` : 'N/A',
+        `${r.aluno || '-'}<br><small>${r.turma || '-'}</small>`,
+        money(valor),
+        r.formaPagamento || 'Pix',
+        `<span class="chairs-tag">${Number(r.cadeirasExtras)||0}</span>`,
+        `${r.data || '-'} ${r.horario || ''}`,
+        `<span class="pill ${r.status||'pendente'}">${statusLabel(r.status||'pendente')}</span>`,
+        acoesHTML(r)
+      ];
+      cells.forEach((c,i)=>{ const td=tr.insertCell(); td.innerHTML=c; td.setAttribute('data-label',labels[i]); if(i===9) td.className='actions-cell'; });
+    });
+    document.getElementById('mTotalMesas').textContent = totalMesas;
+    document.getElementById('mPendentes').textContent = pendentes;
+    document.getElementById('mPagas').textContent = pagas;
+    document.getElementById('mArrecadado').textContent = money(arrecadado);
+    document.getElementById('mReceber').textContent = money(receber);
+    document.getElementById('mCancelamentos').textContent = cancel;
+  }
+
+  function acoesHTML(r){
+    const m = r.mesas[0];
+    return `<div class="actions">
+      <button class="action charge" onclick="enviarCobrancaPix('${m}')">💸 Cobrar Pix</button>
+      <button class="action confirm" onclick="confirmarPagamento('${m}')">✅ Confirmar</button>
+      <button class="action final" onclick="enviarConfirmacaoPagamento('${m}')">📩 Msg. confirmação</button>
+      <button class="action location" onclick="enviarLocalizacao('${m}')">📍 Local</button>
+      <button class="action edit" onclick="abrirModalEdicao('${m}')">✏️ Editar</button>
+      <button class="action cancel" onclick="marcarCancelamento('${m}')">🚫 Cancelamento</button>
+      <button class="action release" onclick="liberarReserva('${m}')">🧹 Liberar</button>
+    </div>`;
+  }
+
+  function findReserva(mesa){ return dadosAgrupados.find(r => r.mesas.includes(mesa)); }
+  function abrirZapCliente(r,msg){
+    const tel = onlyNum(r.telefone);
+    if(!tel) return alert('Telefone não encontrado nessa reserva. Edite a reserva e cadastre o WhatsApp.');
+    window.open(zapLink(tel,msg),'_blank');
+  }
+
+  function mensagemCobranca(r){
+    return `Olá, ${r.nome}! Tudo bem?\n\nPassando para lembrar da reserva do *${EVENTO_NOME}*.\n\n*Aluno:* ${r.aluno} (${r.turma})\n*Mesa(s):* ${r.mesas.join(', ')}\n*Valor:* ${money(r.valorTotal)}\n\nPara confirmar a reserva, o pagamento deve ser feito via Pix:\n\n*Chave Pix CNPJ:* ${PIX_CHAVE}\n*Nome:* ${PIX_NOME}\n\nApós o pagamento, envie o comprovante por aqui para confirmarmos no sistema.\n\nAtenção: reservas pendentes podem ser liberadas caso o pagamento não seja confirmado.`;
+  }
+  function mensagemConfirmacao(r){
+    return `Olá, ${r.nome}! ✅\n\nPagamento confirmado com sucesso!\n\nSua reserva para o *${EVENTO_NOME}* está garantida.\n\n*Aluno:* ${r.aluno} (${r.turma})\n*Mesa(s):* ${r.mesas.join(', ')}${Number(r.cadeirasExtras)>0 ? `\n*Cadeiras extras:* ${r.cadeirasExtras}` : ''}\n*Valor confirmado:* ${money(r.valorTotal)}\n\nMuito obrigada! Esperamos vocês no evento.`;
+  }
+  function mensagemLocal(r){
+    return `Olá, ${r.nome}! 📍\n\nSegue a informação do local do *${EVENTO_NOME}*:\n\n*Local:* ${LOCAL_EVENTO}\n*Data/Horário:* ${DATA_EVENTO}\n*Mesa(s):* ${r.mesas.join(', ')}\n\nPedimos que cheguem com antecedência para melhor organização.`;
+  }
+  function mensagemCancelamento(r){
+    return `Olá, ${r.nome}.\n\nRegistramos a solicitação de cancelamento da reserva do *${EVENTO_NOME}*.\n\n*Mesa(s):* ${r.mesas.join(', ')}\n*Valor:* ${money(r.valorTotal)}\n\nA secretaria/financeiro fará a análise e entrará em contato sobre a liberação da mesa e possível estorno, quando aplicável.`;
+  }
+
+  window.enviarCobrancaPix = function(mesa){ const r=findReserva(mesa); if(r) abrirZapCliente(r,mensagemCobranca(r)); }
+  window.enviarConfirmacaoPagamento = function(mesa){ const r=findReserva(mesa); if(r) abrirZapCliente(r,mensagemConfirmacao(r)); }
+  window.enviarLocalizacao = function(mesa){ const r=findReserva(mesa); if(r) abrirZapCliente(r,mensagemLocal(r)); }
+
+  window.confirmarPagamento = async function(mesa){
+    const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
+    if(!confirm(`Confirmar pagamento das mesas ${r.mesas.join(', ')}?`)) return;
+    const updates = {};
+    const agora = new Date().toLocaleString('pt-BR');
+    r.mesas.forEach(m=>{ updates[`/reservas/${m}/status`]='paga'; updates[`/reservas/${m}/dataPagamento`]=agora; updates[`/reservas/${m}/confirmadoPor`]=auth.currentUser?.email || 'painel'; });
+    await update(ref(db), updates);
+    if(confirm('Pagamento confirmado. Deseja enviar a mensagem de confirmação agora?')) abrirZapCliente({...r,status:'paga'}, mensagemConfirmacao(r));
+  }
+
+  window.marcarCancelamento = async function(mesa){
+    const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
+    if(!confirm(`Marcar cancelamento solicitado para as mesas ${r.mesas.join(', ')}?`)) return;
+    const updates = {}; const agora = new Date().toLocaleString('pt-BR');
+    r.mesas.forEach(m=>{ updates[`/reservas/${m}/status`]='cancelamento-solicitado'; updates[`/reservas/${m}/solicitacaoCancelamento`]=agora; });
+    await update(ref(db), updates);
+    window.open(adminZap(`🚫 Solicitação de cancelamento registrada\n\nResponsável: ${r.nome}\nTelefone: ${r.telefone||'N/A'}\nAluno: ${r.aluno} (${r.turma})\nMesas: ${r.mesas.join(', ')}\nValor: ${money(r.valorTotal)}\n\nVerifique estorno/liberação no painel.`),'_blank');
+  }
+
+  window.liberarReserva = async function(mesa){
+    const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
+    if(!confirm(`LIBERAR/DELETAR a reserva das mesas ${r.mesas.join(', ')}? Use apenas após resolver pagamento/estorno.`)) return;
+    const updates = {}; r.mesas.forEach(m=>updates[`/reservas/${m}`]=null);
+    await update(ref(db), updates);
+    alert('Reserva liberada com sucesso.');
+  }
+
+  window.abrirModalEdicao = function(mesa){
+    const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
+    document.getElementById('editMesaPrincipalId').value = mesa;
+    document.getElementById('editMesas').textContent = r.mesas.join(', ');
+    document.getElementById('editNome').value = r.nome || '';
+    document.getElementById('editTelefone').value = r.telefone || '';
+    document.getElementById('editAluno').value = r.aluno || '';
+    document.getElementById('editTurma').value = r.turma || '';
+    document.getElementById('editCadeirasExtras').value = r.cadeirasExtras || 0;
+    document.getElementById('editObservacoes').value = r.observacoes || '';
+    let pg = r.formaPagamento || 'Pix';
+    if(FIXED_PAYMENT_OPTIONS.includes(pg)){ formaPagamentoSelect.value = pg; outrosDetalheInput.value=''; }
+    else { formaPagamentoSelect.value='Outros'; outrosDetalheInput.value=pg; }
+    toggleOutrosField(); document.getElementById('editModal').style.display='flex';
+  }
+  window.fecharModalEdicao = function(){ document.getElementById('editModal').style.display='none'; }
+  window.toggleOutrosField = function(){ outrosDetalheInput.style.display = formaPagamentoSelect.value === 'Outros' ? 'block' : 'none'; }
+  window.salvarEdicao = async function(){
+    const mesa = document.getElementById('editMesaPrincipalId').value;
+    const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
+    const cadeiras = Math.max(0, Math.min(2, parseInt(document.getElementById('editCadeirasExtras').value)||0));
+    let forma = formaPagamentoSelect.value === 'Outros' ? (outrosDetalheInput.value || 'Outros') : formaPagamentoSelect.value;
+    const updates = {};
+    r.mesas.forEach(m=>{
+      updates[`/reservas/${m}/nome`] = document.getElementById('editNome').value.trim();
+      updates[`/reservas/${m}/telefone`] = onlyNum(document.getElementById('editTelefone').value);
+      updates[`/reservas/${m}/aluno`] = document.getElementById('editAluno').value.trim();
+      updates[`/reservas/${m}/turma`] = document.getElementById('editTurma').value.trim();
+      updates[`/reservas/${m}/cadeirasExtras`] = cadeiras;
+      updates[`/reservas/${m}/formaPagamento`] = forma;
+      updates[`/reservas/${m}/observacoes`] = document.getElementById('editObservacoes').value.trim();
+    });
+    await update(ref(db), updates); fecharModalEdicao(); alert('Reserva editada com sucesso.');
+  }
+
+  window.exportarPDF = function(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+    const linhas = dadosAgrupados.filter(passaFiltros);
+    if(!linhas.length) return alert('Não há dados para exportar.');
+    doc.setFontSize(16); doc.text('Relatório de Reservas - Traços Culturais', 148, 16, {align:'center'});
+    doc.setFontSize(10); doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} | Aba: ${abaAtual}`, 148, 23, {align:'center'});
+    doc.autoTable({startY:30, head:[['Mesas','Responsável','Telefone','Aluno/Turma','Valor','Pagamento','Cadeiras','Data/Hora','Status']], body:linhas.map(r=>[r.mesas.join(', '),r.nome||'',r.telefone||'',`${r.aluno||''} (${r.turma||''})`,money(r.valorTotal),r.formaPagamento||'Pix',r.cadeirasExtras||0,`${r.data||''} ${r.horario||''}`,statusLabel(r.status||'pendente')]), theme:'grid', styles:{fontSize:8,cellPadding:2}, headStyles:{fillColor:[31,95,139]}});
+    doc.save(`Painel_Tracos_Culturais_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+  }
+</script>
 </body>
 </html>
