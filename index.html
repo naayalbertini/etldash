@@ -73,6 +73,10 @@
     .pill.cancelamento-solicitado{background:#eef0f3;color:#555} .pill.cancelamento-aprovado{background:#f3e8ff;color:var(--purple)}
     .mesa-tag{display:inline-flex;background:#e9f3fb;color:var(--blue-dark);font-weight:900;border-radius:10px;padding:6px 9px}
     .chairs-tag{display:inline-flex;background:#fff3d0;color:#8a4a13;font-weight:900;border-radius:10px;padding:6px 9px}
+    .pay-note{display:block;margin-top:5px;color:var(--muted);font-size:.72rem;font-weight:800}
+    .calc-box{background:#fff8ec;border:1px dashed #d8cbb9;border-radius:16px;padding:12px;margin-top:10px;color:#344054}
+    .calc-box strong{color:var(--blue-dark)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .actions{display:flex;flex-wrap:wrap;gap:6px;min-width:250px}
     .action{border:0;border-radius:10px;padding:8px 10px;font-size:.76rem;font-weight:900;cursor:pointer;color:#fff;white-space:nowrap}
     .action.charge{background:var(--orange)} .action.confirm{background:var(--green)} .action.final{background:var(--blue)} .action.edit{background:var(--yellow);color:#3e2a12}
@@ -89,7 +93,7 @@
     .secondary-btn{border:1px solid var(--line);border-radius:15px;padding:13px 16px;background:#fff;color:var(--ink);font-weight:900;cursor:pointer}
 
     @media(max-width:1000px){.metrics{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:1fr 1fr}.tools .tool-btn{width:100%}}
-    @media(max-width:720px){#dashboard-content{padding:14px 8px 34px}.topbar{flex-direction:column;align-items:stretch}.user-box{justify-content:space-between}.metrics{grid-template-columns:repeat(2,1fr)}.panel{padding:12px;border-radius:20px}.tools{grid-template-columns:1fr}.table-wrap{border:0;background:transparent;overflow:visible}table{min-width:0}thead{display:none}tbody tr{display:block;background:#fffdf8;border:1px solid var(--line);border-radius:18px;margin-bottom:12px;padding:10px;box-shadow:var(--soft)}td{display:flex;justify-content:space-between;gap:12px;border:0;padding:8px 4px;font-size:.9rem}td:before{content:attr(data-label);font-weight:900;color:var(--muted);text-transform:uppercase;font-size:.72rem;text-align:left}.actions{width:100%;min-width:0}.actions .action{flex:1 1 46%}.metrics .metric strong{font-size:1.25rem}}
+    @media(max-width:720px){.grid-2{grid-template-columns:1fr}#dashboard-content{padding:14px 8px 34px}.topbar{flex-direction:column;align-items:stretch}.user-box{justify-content:space-between}.metrics{grid-template-columns:repeat(2,1fr)}.panel{padding:12px;border-radius:20px}.tools{grid-template-columns:1fr}.table-wrap{border:0;background:transparent;overflow:visible}table{min-width:0}thead{display:none}tbody tr{display:block;background:#fffdf8;border:1px solid var(--line);border-radius:18px;margin-bottom:12px;padding:10px;box-shadow:var(--soft)}td{display:flex;justify-content:space-between;gap:12px;border:0;padding:8px 4px;font-size:.9rem}td:before{content:attr(data-label);font-weight:900;color:var(--muted);text-transform:uppercase;font-size:.72rem;text-align:left}.actions{width:100%;min-width:0}.actions .action{flex:1 1 46%}.metrics .metric strong{font-size:1.25rem}}
   </style>
 </head>
 <body>
@@ -171,7 +175,23 @@
       <label>WhatsApp</label><input type="tel" id="editTelefone" />
       <label>Aluno</label><input type="text" id="editAluno" />
       <label>Turma</label><input type="text" id="editTurma" />
-      <label>Cadeiras extras</label><input type="number" id="editCadeirasExtras" min="0" max="2" />
+      <div class="grid-2">
+        <div>
+          <label>Cadeiras extras</label><input type="number" id="editCadeirasExtras" min="0" step="1" oninput="atualizarResumoValor()" />
+        </div>
+        <div>
+          <label>Tipo de cobrança</label>
+          <select id="editTipoValor" onchange="toggleValorPersonalizado(); atualizarResumoValor()">
+            <option value="integral">Valor integral</option>
+            <option value="funcionario">Funcionário / metade da mesa</option>
+            <option value="personalizado">Valor personalizado</option>
+          </select>
+        </div>
+      </div>
+      <label id="labelValorPersonalizado" style="display:none">Valor personalizado / combinado</label>
+      <input type="number" id="editValorPersonalizado" min="0" step="0.01" placeholder="Ex.: 85,00" style="display:none" oninput="atualizarResumoValor()" />
+      <div class="calc-box" id="editResumoValor">Valor calculado: <strong>R$ 0,00</strong></div>
+      <label>Motivo do ajuste financeiro</label><input type="text" id="editMotivoAjuste" placeholder="Ex.: retirou cadeira, funcionário, desconto autorizado..." />
       <label>Forma de pagamento</label>
       <select id="editFormaPagamento" onchange="toggleOutrosField()"><option value="Pix">Pix</option><option value="Cartao Credito">Cartão de Crédito</option><option value="Cartao Debito">Cartão de Débito</option><option value="Dinheiro">Dinheiro</option><option value="Outros">Outros...</option></select>
       <input type="text" id="editOutrosDetalhe" placeholder="Especifique o pagamento" style="display:none;margin-top:10px" />
@@ -222,6 +242,7 @@
 
   const labels = ['MESA(S)','RESPONSÁVEL','TELEFONE','ALUNO/TURMA','VALOR','PAGAMENTO','CADEIRAS','DATA/HORA','STATUS','AÇÕES'];
   const money = v => `R$ ${(Number(v)||0).toFixed(2).replace('.', ',')}`;
+  const brNumber = v => Number(String(v || '0').replace(',', '.')) || 0;
   const onlyNum = v => (v || '').toString().replace(/[^0-9]/g, '');
   const zapLink = (telefone, msg) => `https://wa.me/55${onlyNum(telefone)}?text=${encodeURIComponent(msg)}`;
   const adminZap = msg => `https://wa.me/${NUMERO_SECRETARIA}?text=${encodeURIComponent(msg)}`;
@@ -259,8 +280,10 @@
       Object.keys(data).forEach(mesaId => {
         const r = data[mesaId] || {};
         const chave = (r.mesasSelecionadas && Array.isArray(r.mesasSelecionadas)) ? r.mesasSelecionadas.slice().sort().join('|') : `${r.nome||''}-${r.aluno||''}-${r.data||''}-${r.horario||''}`;
-        const valorTotal = Number(r.valorTotal) || ((r.mesasSelecionadas?.length || 1) * VALOR_MESA + (Number(r.cadeirasExtras)||0) * VALOR_CADEIRA);
-        if(!map.has(chave)) map.set(chave,{...r, mesas:[], status:r.status||'pendente', valorTotal, cadeirasExtras:Number(r.cadeirasExtras)||0, formaPagamento:r.formaPagamento||'Pix'});
+        const qtdMesas = (r.mesasSelecionadas?.length || 1);
+        const baseCalculada = qtdMesas * VALOR_MESA + (Number(r.cadeirasExtras)||0) * VALOR_CADEIRA;
+        const valorTotal = r.valorTotal !== undefined && r.valorTotal !== null && r.valorTotal !== '' ? Number(r.valorTotal) : baseCalculada;
+        if(!map.has(chave)) map.set(chave,{...r, mesas:[], status:r.status||'pendente', valorTotal, valorBaseCalculado: Number(r.valorBaseCalculado)||baseCalculada, tipoValor:r.tipoValor||'integral', motivoAjuste:r.motivoAjuste||'', cadeirasExtras:Number(r.cadeirasExtras)||0, formaPagamento:r.formaPagamento||'Pix'});
         map.get(chave).mesas.push(mesaId);
       });
       dadosAgrupados = Array.from(map.values()).map(r => ({...r, mesas:r.mesas.sort((a,b)=>parseInt(a)-parseInt(b))}));
@@ -342,7 +365,7 @@
         r.nome || '-',
         tel ? `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}` : 'N/A',
         `${r.aluno || '-'}<br><small>${r.turma || '-'}</small>`,
-        money(valor),
+        `${money(valor)}${r.tipoValor && r.tipoValor !== 'integral' ? `<span class="pay-note">${r.tipoValor === 'funcionario' ? 'Funcionário / metade' : 'Personalizado'}${r.motivoAjuste ? ' · ' + r.motivoAjuste : ''}</span>` : (r.motivoAjuste ? `<span class="pay-note">${r.motivoAjuste}</span>` : '')}`,
         r.formaPagamento || 'Pix',
         `<span class="chairs-tag">${Number(r.cadeirasExtras)||0}</span>`,
         `${r.data || '-'} ${r.horario || ''}`,
@@ -432,18 +455,49 @@
     document.getElementById('editAluno').value = r.aluno || '';
     document.getElementById('editTurma').value = r.turma || '';
     document.getElementById('editCadeirasExtras').value = r.cadeirasExtras || 0;
+    document.getElementById('editTipoValor').value = r.tipoValor || 'integral';
+    document.getElementById('editValorPersonalizado').value = (r.tipoValor === 'personalizado') ? (Number(r.valorTotal)||0).toFixed(2) : '';
+    document.getElementById('editMotivoAjuste').value = r.motivoAjuste || '';
     document.getElementById('editObservacoes').value = r.observacoes || '';
     let pg = r.formaPagamento || 'Pix';
     if(FIXED_PAYMENT_OPTIONS.includes(pg)){ formaPagamentoSelect.value = pg; outrosDetalheInput.value=''; }
     else { formaPagamentoSelect.value='Outros'; outrosDetalheInput.value=pg; }
-    toggleOutrosField(); document.getElementById('editModal').style.display='flex';
+    toggleOutrosField(); toggleValorPersonalizado(); atualizarResumoValor(); document.getElementById('editModal').style.display='flex';
   }
   window.fecharModalEdicao = function(){ document.getElementById('editModal').style.display='none'; }
   window.toggleOutrosField = function(){ outrosDetalheInput.style.display = formaPagamentoSelect.value === 'Outros' ? 'block' : 'none'; }
+
+  function calcularValorEditado(r){
+    const cadeiras = Math.max(0, parseInt(document.getElementById('editCadeirasExtras').value)||0);
+    const tipo = document.getElementById('editTipoValor').value || 'integral';
+    const qtdMesas = r?.mesas?.length || 1;
+    const valorMesas = qtdMesas * VALOR_MESA;
+    const valorCadeiras = cadeiras * VALOR_CADEIRA;
+    const base = valorMesas + valorCadeiras;
+    let total = base;
+    if(tipo === 'funcionario') total = (valorMesas / 2) + valorCadeiras;
+    if(tipo === 'personalizado') total = brNumber(document.getElementById('editValorPersonalizado').value);
+    return {cadeiras, tipo, qtdMesas, valorMesas, valorCadeiras, base, total};
+  }
+
+  window.toggleValorPersonalizado = function(){
+    const show = document.getElementById('editTipoValor').value === 'personalizado';
+    document.getElementById('labelValorPersonalizado').style.display = show ? 'block' : 'none';
+    document.getElementById('editValorPersonalizado').style.display = show ? 'block' : 'none';
+  }
+
+  window.atualizarResumoValor = function(){
+    const mesa = document.getElementById('editMesaPrincipalId').value;
+    const r = findReserva(mesa);
+    if(!r) return;
+    const calc = calcularValorEditado(r);
+    const detalhe = calc.tipo === 'funcionario' ? `Mesa(s) pela metade: ${money(calc.valorMesas/2)} + cadeiras: ${money(calc.valorCadeiras)}` : calc.tipo === 'personalizado' ? 'Valor informado manualmente pela coordenação.' : `Mesa(s): ${money(calc.valorMesas)} + cadeiras: ${money(calc.valorCadeiras)}`;
+    document.getElementById('editResumoValor').innerHTML = `${detalhe}<br>Valor final: <strong>${money(calc.total)}</strong>`;
+  }
   window.salvarEdicao = async function(){
     const mesa = document.getElementById('editMesaPrincipalId').value;
     const r = findReserva(mesa); if(!r) return alert('Reserva não encontrada.');
-    const cadeiras = Math.max(0, Math.min(2, parseInt(document.getElementById('editCadeirasExtras').value)||0));
+    const calc = calcularValorEditado(r);
     let forma = formaPagamentoSelect.value === 'Outros' ? (outrosDetalheInput.value || 'Outros') : formaPagamentoSelect.value;
     const updates = {};
     r.mesas.forEach(m=>{
@@ -451,7 +505,11 @@
       updates[`/reservas/${m}/telefone`] = onlyNum(document.getElementById('editTelefone').value);
       updates[`/reservas/${m}/aluno`] = document.getElementById('editAluno').value.trim();
       updates[`/reservas/${m}/turma`] = document.getElementById('editTurma').value.trim();
-      updates[`/reservas/${m}/cadeirasExtras`] = cadeiras;
+      updates[`/reservas/${m}/cadeirasExtras`] = calc.cadeiras;
+      updates[`/reservas/${m}/tipoValor`] = calc.tipo;
+      updates[`/reservas/${m}/valorBaseCalculado`] = calc.base;
+      updates[`/reservas/${m}/valorTotal`] = calc.total;
+      updates[`/reservas/${m}/motivoAjuste`] = document.getElementById('editMotivoAjuste').value.trim();
       updates[`/reservas/${m}/formaPagamento`] = forma;
       updates[`/reservas/${m}/observacoes`] = document.getElementById('editObservacoes').value.trim();
     });
